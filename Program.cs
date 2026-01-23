@@ -57,6 +57,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SalesViewProductPolicy", policy => policy.RequireClaim("Sales"));
 });
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
 // Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

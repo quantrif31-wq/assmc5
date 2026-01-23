@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using lab4.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,9 +8,9 @@ namespace lab4.Areas.Identity.Pages.Account
 {
     public class LoginWithEmailOtpModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public LoginWithEmailOtpModel(SignInManager<IdentityUser> signInManager)
+        public LoginWithEmailOtpModel(SignInManager<ApplicationUser> signInManager)
         {
             _signInManager = signInManager;
         }
