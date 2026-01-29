@@ -56,6 +56,72 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        /* Search Bar Styles */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,.85);
+            border: 1px solid rgba(0,0,0,.12);
+            border-radius: 24px;
+            padding: 6px 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.06);
+            transition: all 0.3s ease;
+            margin-left: auto;
+            margin-right: 16px;
+        }
+
+        .search-bar:hover,
+        .search-bar:focus-within {
+            background: rgba(255,255,255,.95);
+            border-color: rgba(0,0,0,.22);
+            box-shadow: 0 6px 18px rgba(0,0,0,.10);
+        }
+
+        .search-bar input[type="text"] {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            padding: 6px 10px;
+            width: 180px;
+            color: var(--ink);
+            transition: width 0.3s ease;
+        }
+
+        .search-bar input[type="text"]::placeholder {
+            color: rgba(0,0,0,.40);
+        }
+
+        .search-bar:focus-within input[type="text"] {
+            width: 220px;
+        }
+
+        .search-bar button {
+            border: none;
+            background: rgba(0,0,0,.60);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .search-bar button:hover {
+            background: rgba(0,0,0,.80);
+        }
+
+        .search-bar button svg {
+            width: 14px;
+            height: 14px;
         }
 
         .avatar {
@@ -123,6 +189,18 @@
             <div class="avatar" title="Avatar">
                 <img src="~/images/nen_home.png" alt="avatar" />
             </div>
+
+            <!-- Search Bar -->
+            <form class="search-bar" action="/Product/Search" method="get">
+                <input type="text" name="query" placeholder="Tìm món ăn..." value="@Context.Request.Query["query"]" />
+                <button type="submit">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    Tìm
+                </button>
+            </form>
 
             <nav class="menu" aria-label="Main navigation">
                 <a class="@(Context.Request.Path.Value?.StartsWith("/Product/Index") == true || Context.Request.Path.Value == "/" ? "active" : "")" href="/Product/Index">HOME</a><span class="sep">|</span>

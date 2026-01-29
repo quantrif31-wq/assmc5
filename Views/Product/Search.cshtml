@@ -1,0 +1,561 @@
+@model IEnumerable<Lab4.Models.Product>
+
+@{
+    ViewData["Title"] = "Kết quả tìm kiếm";
+    var query = ViewData["SearchQuery"] as string ?? "";
+    var minPrice = ViewData["MinPrice"] as int?;
+    var maxPrice = ViewData["MaxPrice"] as int?;
+    var sortBy = ViewData["SortBy"] as string ?? "default";
+}
+
+@section Styles {
+    <style>
+        /* Search Results Section */
+        .search-results-band {
+            margin-top: 32px;
+            padding: 24px 0 40px;
+            position: relative;
+            min-height: 400px;
+        }
+
+        .search-results-wrap {
+            width: min(1120px, calc(100% - 64px));
+            margin: 0 auto;
+        }
+
+        .search-header {
+            margin-bottom: 28px;
+        }
+
+        .search-title {
+            font-weight: 800;
+            font-size: 28px;
+            margin: 0 0 8px;
+            color: var(--ink);
+        }
+
+        .search-subtitle {
+            color: rgba(0,0,0,.50);
+            font-size: 14px;
+        }
+
+        .search-query-text {
+            font-weight: 700;
+            color: rgba(0,0,0,.72);
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: rgba(255,255,255,.80);
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(0,0,0,.08);
+            box-shadow: 0 8px 20px rgba(0,0,0,.06);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(0,0,0,.55);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            border: 1px solid rgba(0,0,0,.15);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            background: #fff;
+            color: var(--ink);
+            min-width: 140px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            outline: none;
+            border-color: rgba(0,0,0,.35);
+            box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+        }
+
+        .filter-group input::placeholder {
+            color: rgba(0,0,0,.35);
+        }
+
+        .btn-filter {
+            background: rgba(0,0,0,.65);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-filter:hover {
+            background: rgba(0,0,0,.85);
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: rgba(0,0,0,.55);
+            border: 1px solid rgba(0,0,0,.20);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-clear:hover {
+            background: rgba(0,0,0,.05);
+            color: rgba(0,0,0,.70);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        /* Result Cards */
+        .result-card {
+            height: 100%;
+            border-radius: 12px;
+            background: rgba(255,255,255,.85);
+            border: 1px solid rgba(0,0,0,.08);
+            box-shadow: 0 14px 26px rgba(0,0,0,.10);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 32px rgba(0,0,0,.14);
+        }
+
+        .result-card .inner {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 16px;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .result-thumb {
+            width: 90px;
+            height: 90px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 14px rgba(0,0,0,.12);
+            border: 2px solid rgba(255,255,255,.8);
+            background: #fff;
+        }
+
+        .result-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .result-name {
+            font-weight: 800;
+            font-size: 18px;
+            margin: 0 0 4px;
+            letter-spacing: .01em;
+            color: var(--ink);
+        }
+
+        .result-desc {
+            margin: 0 0 10px;
+            color: rgba(0,0,0,.45);
+            font-size: 12.5px;
+            line-height: 1.4;
+            max-width: 350px;
+        }
+
+        .result-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .result-price {
+            font-weight: 700;
+            color: rgba(0,0,0,.55);
+            font-size: 14px;
+        }
+
+        .btn-add {
+            border: 1px solid rgba(0,0,0,.35);
+            background: rgba(0,0,0,.60);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            letter-spacing: .01em;
+            font-size: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,.12);
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-add:hover {
+            background: rgba(0,0,0,.80);
+            color: #fff;
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255,255,255,.70);
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,.06);
+        }
+
+        .no-results-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.35;
+        }
+
+        .no-results h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: var(--ink);
+        }
+
+        .no-results p {
+            color: rgba(0,0,0,.50);
+            margin: 0 0 20px;
+        }
+
+        .btn-back-menu {
+            display: inline-block;
+            background: rgba(0,0,0,.60);
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.2s ease;
+        }
+
+        .btn-back-menu:hover {
+            background: rgba(0,0,0,.80);
+            color: #fff;
+        }
+
+        /* Active Filters */
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,0,0,.08);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: rgba(0,0,0,.65);
+        }
+
+        .filter-tag strong {
+            color: rgba(0,0,0,.85);
+        }
+
+        @@media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+
+            .filter-group input,
+            .filter-group select {
+                width: 100%;
+            }
+
+            .filter-actions {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+
+            .result-card .inner {
+                grid-template-columns: 80px 1fr;
+                gap: 12px;
+                padding: 12px;
+            }
+
+            .result-thumb {
+                width: 75px;
+                height: 75px;
+            }
+
+            .result-name {
+                font-size: 16px;
+            }
+        }
+
+        @@media (max-width: 520px) {
+            .search-results-wrap {
+                width: calc(100% - 32px);
+            }
+
+            .search-title {
+                font-size: 22px;
+            }
+
+            .filter-section {
+                padding: 16px;
+            }
+        }
+    </style>
+}
+
+<section class="search-results-band">
+    <div class="search-results-wrap">
+        <div class="search-header">
+            <h1 class="search-title">Tìm kiếm & Lọc sản phẩm</h1>
+            @if (Model.Any())
+            {
+                <p class="search-subtitle">
+                    Tìm thấy <strong>@Model.Count()</strong> sản phẩm
+                    @if (!string.IsNullOrWhiteSpace(query))
+                    {
+                        <span>cho "<span class="search-query-text">@query</span>"</span>
+                    }
+                </p>
+            }
+        </div>
+
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <form action="/Product/Search" method="get">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="query">Từ khóa</label>
+                        <input type="text" id="query" name="query" placeholder="Tên món ăn..." value="@query" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="minPrice">Giá từ (VND)</label>
+                        <input type="number" id="minPrice" name="minPrice" placeholder="0" value="@(minPrice > 0 ? minPrice : "")" min="0" step="1000" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="maxPrice">Đến (VND)</label>
+                        <input type="number" id="maxPrice" name="maxPrice" placeholder="Không giới hạn" value="@(maxPrice > 0 ? maxPrice : "")" min="0" step="1000" />
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sortBy">Sắp xếp</label>
+                        <select id="sortBy" name="sortBy">
+                            <option value="default" selected="@(sortBy == "default")">Mặc định</option>
+                            <option value="price_asc" selected="@(sortBy == "price_asc")">Giá: Thấp → Cao</option>
+                            <option value="price_desc" selected="@(sortBy == "price_desc")">Giá: Cao → Thấp</option>
+                            <option value="name_asc" selected="@(sortBy == "name_asc")">Tên: A → Z</option>
+                            <option value="name_desc" selected="@(sortBy == "name_desc")">Tên: Z → A</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn-filter">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            Lọc
+                        </button>
+                        <a href="/Product/Search" class="btn-clear">Xóa bộ lọc</a>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(query) || minPrice > 0 || maxPrice > 0 || sortBy != "default")
+                {
+                    <div class="active-filters">
+                        @if (!string.IsNullOrWhiteSpace(query))
+                        {
+                            <span class="filter-tag">Từ khóa: <strong>@query</strong></span>
+                        }
+                        @if (minPrice > 0)
+                        {
+                            <span class="filter-tag">Giá từ: <strong>@minPrice?.ToString("N0") VND</strong></span>
+                        }
+                        @if (maxPrice > 0)
+                        {
+                            <span class="filter-tag">Đến: <strong>@maxPrice?.ToString("N0") VND</strong></span>
+                        }
+                        @if (sortBy != "default")
+                        {
+                            var sortLabel = sortBy switch {
+                                "price_asc" => "Giá thấp → cao",
+                                "price_desc" => "Giá cao → thấp",
+                                "name_asc" => "Tên A → Z",
+                                "name_desc" => "Tên Z → A",
+                                _ => "Mặc định"
+                            };
+                            <span class="filter-tag">Sắp xếp: <strong>@sortLabel</strong></span>
+                        }
+                    </div>
+                }
+            </form>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var p in Model)
+                {
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="result-card">
+                            <div class="inner">
+                                <div class="result-thumb">
+                                    <img src="@p.ImageUrl" alt="@p.Name" />
+                                </div>
+                                <div>
+                                    <h3 class="result-name">@p.Name</h3>
+                                    <p class="result-desc">@p.Description</p>
+                                    <div class="result-meta">
+                                        <div class="result-price">@p.PriceText</div>
+                                        <button type="button" class="btn-add js-add" data-id="@p.Id">
+                                            Thêm vào giỏ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="no-results">
+                <div class="no-results-icon">🔍</div>
+                @if (string.IsNullOrWhiteSpace(query) && !minPrice.HasValue && !maxPrice.HasValue)
+                {
+                    <h2>Bắt đầu tìm kiếm</h2>
+                    <p>Nhập từ khóa hoặc sử dụng bộ lọc để tìm món ăn bạn muốn</p>
+                }
+                else
+                {
+                    <h2>Không tìm thấy kết quả</h2>
+                    <p>Không có món ăn nào phù hợp với bộ lọc của bạn. Hãy thử điều chỉnh lại.</p>
+                }
+                <a href="/Product/Menu" class="btn-back-menu">Xem thực đơn</a>
+            </div>
+        }
+    </div>
+</section>
+
+<form id="antiForgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        // Set selected option for sortBy dropdown
+        (function() {
+            const sortBy = '@sortBy';
+            const select = document.getElementById('sortBy');
+            if (select) {
+                for (let option of select.options) {
+                    option.selected = option.value === sortBy;
+                }
+            }
+        })();
+
+        (function () {
+            const tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
+
+            async function addToCart(productId) {
+                const res = await fetch('/Cart/AddAjax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': tokenInput ? tokenInput.value : ''
+                    },
+                    body: new URLSearchParams({ productId: productId, quantity: 1 })
+                });
+
+                if (!res.ok) {
+                    let txt = '';
+                    try { txt = await res.text(); } catch {}
+                    throw new Error('Add failed: ' + res.status + ' ' + txt);
+                }
+                return await res.json();
+            }
+
+            function setBadge(totalQty) {
+                const badge = document.getElementById('cartBadge');
+                if (badge) badge.textContent = totalQty ?? 0;
+            }
+
+            document.addEventListener('click', async (e) => {
+                const btn = e.target.closest('.js-add');
+                if (!btn) return;
+
+                btn.disabled = true;
+                const oldText = btn.textContent;
+                btn.textContent = 'Đang thêm...';
+
+                try {
+                    const id = btn.getAttribute('data-id');
+                    const data = await addToCart(id);
+
+                    if (data && data.ok) {
+                        setBadge(data.totalQty);
+                        btn.textContent = 'Đã thêm ✓';
+                        setTimeout(() => { btn.textContent = oldText; }, 900);
+                    } else {
+                        btn.textContent = oldText;
+                        alert(data?.message || 'Thêm vào giỏ thất bại');
+                    }
+                } catch (err) {
+                    btn.textContent = oldText;
+                    alert(err?.message || 'Thêm vào giỏ thất bại');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
+}
