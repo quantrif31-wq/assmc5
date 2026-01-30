@@ -1,0 +1,27 @@
+﻿@model List<lab4.Models.InventoryLog>
+
+<h2>Lịch sử kho</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Thay đổi</th>
+            <th>Tồn sau</th>
+            <th>Loại</th>
+            <th>Thời gian</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var log in Model)
+        {
+            <tr>
+                <td>@log.Product.Name</td>
+                <td>@log.QuantityChange</td>
+                <td>@log.QuantityAfter</td>
+                <td>@log.ActionType</td>
+                <td>@log.CreatedAt</td>
+            </tr>
+        }
+    </tbody>
+</table>

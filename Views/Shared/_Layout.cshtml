@@ -249,6 +249,23 @@
                         REGISTER
                     </a>
                 }
+                @if (SignInManager.IsSignedIn(User))
+                {
+                    <span class="sep">|</span>
+
+                    <a class="@(Context.Request.Path.Value?.StartsWith("/GoodsReceipts") == true ? "active" : "")"
+                       href="/GoodsReceipts/Create">
+                        NHẬP KHO
+                    </a>
+
+                    <span class="sep">|</span>
+
+                    <a class="@(Context.Request.Path.Value?.StartsWith("/Inventory/Logs") == true ? "active" : "")"
+                       href="/Inventory/Logs">
+                        LỊCH SỬ KHO
+                    </a>
+                }
+
 
             </nav>
         </header>

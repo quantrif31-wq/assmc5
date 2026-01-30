@@ -1,0 +1,42 @@
+﻿@model lab4.Models.GoodsReceiptViewModel
+@{
+    var products = ViewBag.Products as List<Product>;
+}
+
+<h2>Nhập kho</h2>
+
+<form asp-action="Create" method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < products.Count; i++)
+            {
+                <tr>
+                    <td>
+                        <select name="Items[@i].ProductId" class="form-control">
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.Id">@p.Name</option>
+                            }
+                        </select>
+                    </td>
+                    <td>
+                        <input name="Items[@i].Quantity"
+                               class="form-control"
+                               type="number"
+                               min="1" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-success">
+        Xác nhận nhập kho
+    </button>
+</form>

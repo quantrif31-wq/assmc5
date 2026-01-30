@@ -81,6 +81,15 @@ namespace Lab4.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
+        public IActionResult Logs()
+        {
+            var logs = _context.InventoryLogs
+                .Include(l => l.Product)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToList();
+
+            return View(logs);
+        }
 
     }
 }

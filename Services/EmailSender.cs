@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity.UI.Services;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
@@ -18,11 +18,14 @@ namespace Lab4.Services
         {
             var client = new SmtpClient(_settings.SmtpServer, _settings.Port)
             {
+                UseDefaultCredentials = false, // 🔴 BẮT BUỘC
                 Credentials = new NetworkCredential(
-                    _settings.Username,
-                    _settings.Password),
+        _settings.Username,
+        _settings.Password.Replace(" ", "") // khuyến nghị
+    ),
                 EnableSsl = true
             };
+
 
             var mail = new MailMessage
             {
