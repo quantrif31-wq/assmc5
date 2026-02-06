@@ -52,10 +52,11 @@
                     <!-- GIÁ NHẬP -->
                     <td>
                         <input name="items[@i].UnitCost"
+                               class="form-control unit-cost"
+                               data-product-id="@item.ProductId"
                                value="@item.UnitPrice"
                                type="number"
                                step="0.01"
-                               class="form-control"
                                required />
                     </td>
                 </tr>
@@ -67,3 +68,26 @@
         Xác nhận nhập kho
     </button>
 </form>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const supplierId = @Model.SupplierId;
+
+            document.querySelectorAll(".unit-cost").forEach(input => {
+                const productId = input.dataset.productId;
+
+                // nếu PO không có giá hoặc giá = 0
+                if (!input.value || input.value == 0) {
+                    fetch(`/PurchaseOrders/GetLastPurchasePrice?supplierId=${supplierId}&productId=${productId}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.price && data.price > 0) {
+                                input.value = data.price;
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+}

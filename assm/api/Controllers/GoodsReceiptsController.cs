@@ -2,6 +2,7 @@
 using Lab4.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace lab4.Controllers
 {
@@ -59,7 +60,16 @@ namespace lab4.Controllers
                         QuantityReceived = item.Quantity,
                         UnitCost = item.UnitCost
                     });
-
+                    // ===== LƯU LỊCH SỬ GIÁ NHẬP =====
+                    _context.PriceHistories.Add(new PriceHistory
+                    {
+                        ProductId = item.ProductId,
+                        Type = PriceType.PURCHASE,
+                        Price = item.UnitCost,
+                        EffectiveFrom = DateTime.UtcNow,
+                        ReferenceCode = receipt.Code,          // GRxxxx
+                        ChangedBy = User.FindFirstValue(ClaimTypes.Name)
+                    });
                     // cập nhật tồn
                     var inventory = await _context.Inventories
                         .FirstAsync(i => i.ProductId == item.ProductId);

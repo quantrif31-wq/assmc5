@@ -1,0 +1,56 @@
+﻿@using lab4.Models
+@model Product
+
+@{
+    ViewData["Title"] = "Đổi giá bán";
+}
+
+<h2 class="mb-3">💰 Đổi giá bán</h2>
+
+<div class="card">
+    <div class="card-body">
+
+        <form asp-action="ChangeSalePrice" method="post">
+
+            <input type="hidden" name="productId" value="@Model.Id" />
+
+            <div class="mb-3">
+                <label class="form-label">Sản phẩm</label>
+                <input class="form-control" value="@Model.Name" disabled />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Giá hiện tại</label>
+                <input class="form-control"
+                       value="@Model.PriceVnd.ToString("N0") VND"
+                       disabled />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Giá mới</label>
+                <input type="number"
+                       name="newPrice"
+                       class="form-control"
+                       required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Lý do thay đổi</label>
+                <textarea name="reason"
+                          class="form-control"
+                          rows="3"
+                          placeholder="VD: Điều chỉnh theo thị trường, khuyến mãi..."
+                          required></textarea>
+            </div>
+
+            <button class="btn btn-success">
+                💾 Lưu giá mới
+            </button>
+
+            <a asp-action="Index" class="btn btn-secondary ms-2">
+                ⬅ Quay lại
+            </a>
+        </form>
+
+    </div>
+</div>

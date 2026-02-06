@@ -120,7 +120,45 @@ namespace lab4.Controllers
             return View(list);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetLastPurchasePrice(int supplierId, int productId)
+        {
+            decimal price = 0;
 
+            // 1️⃣ Giá mua gần nhất theo NCC + SP
+            price = await _context.PurchaseOrderItems
+                .Where(x =>
+                    x.ProductId == productId &&
+                    x.PurchaseOrder.SupplierId == supplierId
+                )
+                .OrderByDescending(x => x.PurchaseOrder.OrderDate)
+                .Select(x => x.UnitPrice)
+                .FirstOrDefaultAsync();
+
+            // 2️⃣ Nếu chưa có → lấy giá mua chung (PriceHistory)
+            if (price <= 0)
+            {
+                price = await _context.PriceHistories
+                    .Where(x =>
+                        x.ProductId == productId &&
+                        x.Type == PriceType.PURCHASE
+                    )
+                    .OrderByDescending(x => x.EffectiveFrom)
+                    .Select(x => x.Price)
+                    .FirstOrDefaultAsync();
+            }
+
+            // 3️⃣ Nếu vẫn chưa có → lấy giá hiện tại của Product
+            if (price <= 0)
+            {
+                price = await _context.Products
+                    .Where(p => p.Id == productId)
+                    .Select(p => (decimal)p.PriceVnd)
+                    .FirstAsync();
+            }
+
+            return Json(new { price });
+        }
     }
 
 }

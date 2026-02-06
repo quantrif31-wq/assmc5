@@ -117,5 +117,20 @@
         document.addEventListener("DOMContentLoaded", function () {
             reindex();
         });
+                document.addEventListener("change", function (e) {
+            if (!e.target.classList.contains("productSelect")) return;
+
+            const row = e.target.closest("tr");
+            const productId = e.target.value;
+            const supplierId = document.getElementById("supplierSelect").value;
+
+            if (!productId || !supplierId) return;
+
+            fetch(`/PurchaseOrders/GetLastPurchasePrice?supplierId=${supplierId}&productId=${productId}`)
+                .then(res => res.json())
+                .then(data => {
+                    row.querySelector(".price").value = data.price;
+                });
+        });
     </script>
 }

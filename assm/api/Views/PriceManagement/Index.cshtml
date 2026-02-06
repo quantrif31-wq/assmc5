@@ -1,0 +1,24 @@
+﻿<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Giá bán</th>
+            <th>Tồn kho</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@p.Name</td>
+                <td>@p.PriceText</td>
+                <td>@p.Inventory?.Quantity</td>
+                <td>
+                    <a asp-action="History" asp-route-productId="@p.Id">📊 Lịch sử</a> |
+                    <a asp-action="ChangeSalePrice" asp-route-productId="@p.Id">✏️ Đổi giá</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

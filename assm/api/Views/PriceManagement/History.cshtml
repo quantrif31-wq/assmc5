@@ -1,0 +1,75 @@
+﻿@using lab4.Models
+@model List<PriceHistory>
+
+@{
+    ViewData["Title"] = "Lịch sử giá";
+    var product = ViewBag.Product as Product;
+}
+
+<h2 class="mb-3">📊 Lịch sử giá</h2>
+
+@if (product != null)
+{
+    <div class="alert alert-info">
+        <strong>Sản phẩm:</strong> @product.Name <br />
+        <strong>Giá hiện tại:</strong> @product.PriceVnd.ToString("N0") VND
+    </div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Loại giá</th>
+            <th>Giá</th>
+            <th>Hiệu lực từ</th>
+            <th>Lý do</th>
+            <th>Tham chiếu</th>
+            <th>Người thay đổi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            int i = 1;
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>
+                        @if (item.Type == PriceType.SALE)
+                        {
+                            <span class="badge bg-success">Giá bán</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Giá nhập</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        @item.Price.ToString("N0") VND
+                    </td>
+                    <td>
+                        @item.EffectiveFrom.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                    </td>
+                    <td>@item.Reason</td>
+                    <td>@item.ReferenceCode</td>
+                    <td>@item.ChangedBy</td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    Chưa có lịch sử giá
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">
+    ⬅ Quay lại danh sách
+</a>
