@@ -2,10 +2,16 @@
 {
     public class CustomerMemory
     {
-        public string? InterestedProduct { get; set; }
-        public string? SelectedColor { get; set; }
-        public string? SelectedSize { get; set; }
-        public string? BudgetRange { get; set; }
-        public bool ReadyToBuy { get; set; }
+        public string? FullName { get; set; }
+        public string? Phone { get; set; }
+        public string? Address { get; set; }
+        public string? City { get; set; }
+        public string? Email { get; set; }
+        public int? TempProductId { get; set; }
+        public string? TempProductName { get; set; }
+
+        public string? PaymentMethod { get; set; }
+        public List<CartItemMemory> Cart { get; set; } = new();
+        public ConversationStage Stage { get; set; } = ConversationStage.None;
     }
 }

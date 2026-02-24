@@ -350,8 +350,17 @@
             --cow-bg: linear-gradient(135deg, #eef2ff, #f0fdfa);
             --cow-dark: #1f1f1f;
         }
+        <!--
 
-        /* Floating button */
+        ================= CHATBOT WIDGET ================= -->
+        <style >
+        :root {
+            --cow-primary: #6C4CF1;
+            --cow-secondary: #A78BFA;
+            --cow-bg: linear-gradient(135deg, #eef2ff, #f0fdfa);
+            --cow-dark: #1f1f1f;
+        }
+
         #chat-toggle {
             position: fixed;
             bottom: 25px;
@@ -373,7 +382,6 @@
                 transform: scale(1.1) rotate(8deg);
             }
 
-        /* Chat box */
         #chat-box {
             position: fixed;
             bottom: 110px;
@@ -387,39 +395,27 @@
             display: none;
             flex-direction: column;
             overflow: hidden;
-            animation: fadeInUp 0.4s ease;
             z-index: 9999;
         }
 
-        @@keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Header */
         .chat-header {
             background: linear-gradient(135deg, var(--cow-primary), var(--cow-secondary));
             color: white;
-            padding: 16px;
+            padding: 14px;
             font-weight: 600;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
         }
 
-            .chat-header span {
-                font-size: 14px;
-                opacity: 0.85;
+            .chat-header button {
+                background: none;
+                border: none;
+                color: white;
+                cursor: pointer;
+                font-size: 16px;
             }
 
-        /* Messages */
         #chat-messages {
             flex: 1;
             padding: 15px;
@@ -451,9 +447,9 @@
             color: var(--cow-dark);
             border-bottom-left-radius: 4px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            line-height: 1.6;
         }
 
-        /* Input */
         #chat-input {
             display: flex;
             border-top: 1px solid rgba(0,0,0,0.05);
@@ -474,22 +470,7 @@
                 color: white;
                 padding: 0 18px;
                 font-weight: 600;
-                transition: 0.3s;
             }
-
-                #chat-input button:hover {
-                    background: var(--cow-secondary);
-                }
-
-        /* Scrollbar đẹp */
-        #chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #chat-messages::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.2);
-            border-radius: 10px;
-        }
     </style>
 
     <button id="chat-toggle">🐄</button>
@@ -497,15 +478,10 @@
     <div id="chat-box">
         <div class="chat-header">
             🐄 Bò Biết Bay AI
-            <span>Online • Trợ lý thông minh</span>
+            <button onclick="clearChat()">🗑</button>
         </div>
 
-        <div id="chat-messages">
-            <div class="msg bot-msg">
-                Xin chào! 🐄✨
-                Tôi là Bò Biết Bay – trợ lý của bạn hôm nay!
-            </div>
-        </div>
+        <div id="chat-messages"></div>
 
         <div id="chat-input">
             <input id="chat-text" placeholder="Hỏi Bò điều gì đó..." />
@@ -514,27 +490,74 @@
     </div>
 
     <script>
+        const CHAT_KEY = "bo_biet_bay_history_v2";
+        const MAX_MESSAGES = 50;
+
         const toggle = document.getElementById("chat-toggle");
         const box = document.getElementById("chat-box");
         const messages = document.getElementById("chat-messages");
 
         toggle.onclick = () => {
-            box.style.display =
-                box.style.display === "flex" ? "none" : "flex";
+            box.style.display = box.style.display === "flex" ? "none" : "flex";
         };
 
-                async function sendChat() {
+        function saveHistory(history) {
+            localStorage.setItem(CHAT_KEY, JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            const raw = localStorage.getItem(CHAT_KEY);
+            if (!raw) {
+                const welcome = [{
+                    role: "bot",
+                    content: "Xin chào! 🐄✨ Tôi là Bò Biết Bay – trợ lý của bạn hôm nay!"
+                }];
+                saveHistory(welcome);
+                return welcome;
+            }
+            return JSON.parse(raw);
+        }
+
+        function renderMessages(history) {
+            messages.innerHTML = "";
+            history.forEach(msg => {
+                const div = document.createElement("div");
+                div.className = "msg " + (msg.role === "user" ? "user-msg" : "bot-msg");
+                div.innerHTML = msg.content;
+                messages.appendChild(div);
+            });
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function addMessage(role, content) {
+            let history = loadHistory();
+            history.push({ role, content });
+
+            if (history.length > MAX_MESSAGES)
+                history = history.slice(-MAX_MESSAGES);
+
+            saveHistory(history);
+            renderMessages(history);
+        }
+
+        function clearChat() {
+            localStorage.removeItem(CHAT_KEY);
+            renderMessages(loadHistory());
+        }
+
+        async function sendChat() {
             const input = document.getElementById("chat-text");
             const msg = input.value.trim();
             if (!msg) return;
 
-            messages.innerHTML += `<div class="msg user-msg">${msg}</div>`;
+            addMessage("user", msg);
             input.value = "";
 
-            const loading = document.createElement("div");
-            loading.className = "msg bot-msg";
-            loading.innerText = "Bò đang bay... 🐄💨";
-            messages.appendChild(loading);
+            const loadingDiv = document.createElement("div");
+            loadingDiv.className = "msg bot-msg";
+            loadingDiv.textContent = "Bò đang bay... 🐄💨";
+            messages.appendChild(loadingDiv);
+            messages.scrollTop = messages.scrollHeight;
 
             try {
                 const res = await fetch("/Chat/Ask", {
@@ -544,20 +567,22 @@
                 });
 
                 if (!res.ok)
-                    throw new Error("Server error " + res.status);
+                    throw new Error();
 
                 const data = await res.json();
+                loadingDiv.remove();
 
-                loading.remove();
-                messages.innerHTML += `<div class="msg bot-msg">${data.reply}</div>`;
+                addMessage("bot", data.reply);
             }
-            catch (err) {
-                loading.innerText = "Lỗi kết nối server 😢";
-                console.error(err);
+            catch {
+                loadingDiv.remove();
+                addMessage("bot", "Mất kết nối 😢 Vui lòng kiểm tra internet!");
             }
-
-            messages.scrollTop = messages.scrollHeight;
         }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderMessages(loadHistory());
+        });
     </script>
     @RenderSection("Scripts", required: false)
 </body>
