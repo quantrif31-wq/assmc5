@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace lab4.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class new1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -125,9 +125,11 @@ namespace lab4.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Phone = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    DefaultDiscount = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -325,6 +327,7 @@ namespace lab4.Migrations
                     ActionType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ReferenceId = table.Column<int>(type: "int", nullable: false),
                     ReferenceTable = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PerformedByUserId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -339,21 +342,70 @@ namespace lab4.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PriceHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    EffectiveFrom = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ReferenceCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ChangedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PriceHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PriceHistories_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PurchaseOrders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Code = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     SupplierId = table.Column<int>(type: "int", nullable: false),
                     OrderDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PurchaseOrders", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PurchaseOrders_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupplierProducts",
+                columns: table => new
+                {
+                    SupplierId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierProducts", x => new { x.SupplierId, x.ProductId });
+                    table.ForeignKey(
+                        name: "FK_SupplierProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SupplierProducts_Suppliers_SupplierId",
                         column: x => x.SupplierId,
                         principalTable: "Suppliers",
                         principalColumn: "Id",
@@ -389,8 +441,9 @@ namespace lab4.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PurchaseOrderId = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    UnitCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    QuantityOrdered = table.Column<int>(type: "int", nullable: false),
+                    UnitPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    QuantityReceived = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -558,6 +611,11 @@ namespace lab4.Migrations
                 column: "OrderId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PriceHistories_ProductId",
+                table: "PriceHistories",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_SortOrder",
                 table: "Products",
                 column: "SortOrder");
@@ -576,6 +634,11 @@ namespace lab4.Migrations
                 name: "IX_PurchaseOrders_SupplierId",
                 table: "PurchaseOrders",
                 column: "SupplierId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierProducts_ProductId",
+                table: "SupplierProducts",
+                column: "ProductId");
         }
 
         /// <inheritdoc />
@@ -612,7 +675,13 @@ namespace lab4.Migrations
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
+                name: "PriceHistories");
+
+            migrationBuilder.DropTable(
                 name: "PurchaseOrderItems");
+
+            migrationBuilder.DropTable(
+                name: "SupplierProducts");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

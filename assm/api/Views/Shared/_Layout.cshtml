@@ -59,6 +59,8 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
+            position: relative;
+    z-index: 5000;
         }
 
         /* ===== TẦNG TRÊN ===== */
@@ -214,7 +216,7 @@
                 <span class="sep">|</span>
 
                 <a class="@(Context.Request.Path.Value?.StartsWith("/Product/Menu") == true ? "active" : "")"
-                   href="/Product/Menu">MENU</a>
+                   href="/Product/Search">MENU</a>
                 <span class="sep">|</span>
 
                 <a class="@(Context.Request.Path.Value?.StartsWith("/Contact") == true ? "active" : "")"
@@ -224,7 +226,7 @@
                 
                 <!-- CART – USER LOGIN -->
                 @*  @if (User.Identity != null && User.Identity.IsAuthenticated) *@
-                {
+             
                     <a class="@(Context.Request.Path.Value?.StartsWith("/Cart") == true ? "active" : "")"
                        href="/Cart/Index">CART</a>
                     <span id="cartBadge" class="badge rounded-pill text-bg-dark">0</span>
@@ -233,7 +235,7 @@
                     <a class="@(Context.Request.Path.Value?.StartsWith("/Cart/OrderHistory") == true ? "active" : "")"
                        href="/Cart/OrderHistory">ORDER HISTORY</a>
                     <span class="sep">|</span>
-                }
+                
 
 
                 <!-- LOGIN / LOGOUT -->
