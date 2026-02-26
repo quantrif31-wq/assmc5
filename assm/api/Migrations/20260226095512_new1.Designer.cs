@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace lab4.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260206161324_AddSupplierProduct")]
-    partial class AddSupplierProduct
+    [Migration("20260226095512_new1")]
+    partial class new1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -688,6 +688,42 @@ namespace lab4.Migrations
                     b.ToTable("InventoryLogs");
                 });
 
+            modelBuilder.Entity("lab4.Models.PriceHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("PriceHistories");
+                });
+
             modelBuilder.Entity("lab4.Models.PurchaseOrder", b =>
                 {
                     b.Property<int>("Id")
@@ -923,6 +959,17 @@ namespace lab4.Migrations
                 });
 
             modelBuilder.Entity("lab4.Models.InventoryLog", b =>
+                {
+                    b.HasOne("Lab4.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("lab4.Models.PriceHistory", b =>
                 {
                     b.HasOne("Lab4.Models.Product", "Product")
                         .WithMany()
