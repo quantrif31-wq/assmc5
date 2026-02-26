@@ -1,37 +1,145 @@
 ﻿@model Lab4.Models.Inventory
 
 @{
-    ViewData["Title"] = "Nhập thêm tồn kho";
+    ViewData["Title"] = "Inventory Update";
 }
 
-<h2>Nhập thêm tồn kho</h2>
+<style>
+    /* 1. CONTAINER CHUẨN GLASSMORPHISM */
+    .glass-container {
+        width: min(500px, calc(100% - 40px));
+        margin: 60px auto;
+        padding: 40px;
+        
+        /* Hiệu ứng kính mờ đặc trưng */
+        background: rgba(255, 255, 255, 0.45); 
+        backdrop-filter: blur(12px); 
+        -webkit-backdrop-filter: blur(12px);
+        
+        /* Viền sáng tạo cảm giác cạnh kính sắc sảo */
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        border-radius: 24px;
+        
+        /* Đổ bóng lan tỏa để tạo chiều sâu nổi trên nền gradient */
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        
+        position: relative;
+        z-index: 10;
+    }
 
-<form method="post">
-    @Html.AntiForgeryToken()
+    /* 2. TIÊU ĐỀ SẠCH SẼ */
+    .glass-title {
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--ink);
+        text-align: center;
+        margin-bottom: 30px;
+        letter-spacing: -0.5px;
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Sản phẩm</label>
-        <input class="form-control" value="@Model.Product?.Name" disabled />
-    </div>
+    /* 3. CÁC THÀNH PHẦN BÊN TRONG */
+    .info-group {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Tồn kho hiện tại</label>
-        <input class="form-control" value="@Model.Quantity" disabled />
-    </div>
+    .info-label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.5);
+        display: block;
+        margin-bottom: 4px;
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Nhập thêm</label>
-        <input type="number"
-               name="addQuantity"
-               class="form-control"
-               min="1"
-               placeholder="Ví dụ: 20"
-               required />
-    </div>
+    .info-text {
+        font-weight: 700;
+        color: var(--ink);
+        font-size: 16px;
+    }
 
-    <button type="submit" class="btn btn-success">
-        + Cộng thêm
-    </button>
+    /* 4. Ô NHẬP LIỆU "KÍNH" */
+    .glass-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink);
+        transition: all 0.3s ease;
+    }
 
-    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
-</form>
+    .glass-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+    }
+
+    /* 5. NÚT BẤM HIỆN ĐẠI */
+    .glass-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--ink); /* Hoặc dùng một màu nổi bật hơn */
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 14px;
+        margin-top: 25px;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.2s;
+    }
+
+    .glass-btn:hover {
+        background: #000;
+        transform: translateY(-2px);
+    }
+
+    .glass-cancel {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 13px;
+        opacity: 0.6;
+    }
+</style>
+
+<div class="glass-container">
+    <h1 class="glass-title">Inventory Update</h1>
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="info-group">
+            <span class="info-label">Product Name</span>
+            <span class="info-text">@Model.Product?.Name</span>
+        </div>
+
+        <div class="info-group">
+            <span class="info-label">Current Stock</span>
+            <span class="info-text">@Model.Quantity units</span>
+        </div>
+
+        <div class="input-section">
+            <label class="info-label" style="margin-left: 5px;">Add Quantity</label>
+            <input type="number" 
+                   name="addQuantity" 
+                   class="glass-input" 
+                   min="1" 
+                   placeholder="0" 
+                   required 
+                   autofocus />
+        </div>
+
+        <button type="submit" class="glass-btn">Add to Stock</button>
+        <a asp-action="Index" class="glass-cancel">Return to list</a>
+    </form>
+</div>

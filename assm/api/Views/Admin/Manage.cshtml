@@ -1,43 +1,178 @@
-﻿
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @using lab4.Models
 @model (ApplicationUser User, IList<Claim> Claims)
 
-<h2>🔑 Quản lý quyền</h2>
+@{
+    ViewData["Title"] = "Manage Permissions";
+}
 
-<p><b>User:</b> @Model.User.Email</p>
-
-<h4>Quyền hiện có</h4>
-<ul>
-    @foreach (var claim in Model.Claims.Where(c => c.Type == "Permission"))
-    {
-        <li>
-            @claim.Value
-            <form method="post"
-                  asp-action="RemovePermission"
-                  class="d-inline">
-                <input type="hidden" name="userId" value="@Model.User.Id" />
-                <input type="hidden" name="permission" value="@claim.Value" />
-                <button class="btn btn-sm btn-danger">X</button>
-            </form>
-        </li>
+<style>
+    .perm-container {
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 18px;
+        box-shadow: 0 26px 60px rgba(0,0,0,.08);
+        border: 1px solid rgba(0,0,0,.06);
+        margin-top: 20px;
     }
-</ul>
 
-<hr />
-
-<h4>Thêm quyền</h4>
-
-@foreach (var p in ViewBag.AllPermissions as List<string>)
-{
-    if (!Model.Claims.Any(c => c.Type == "Permission" && c.Value == p))
-    {
-        <form method="post"
-              asp-action="AddPermission"
-              class="d-inline">
-            <input type="hidden" name="userId" value="@Model.User.Id" />
-            <input type="hidden" name="permission" value="@p" />
-            <button class="btn btn-sm btn-success">@p</button>
-        </form>
+    .user-info-card {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        border-left: 4px solid #000;
     }
+
+    .section-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: #444;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Chip/Badge Style cho Quyền */
+    .perm-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #fff;
+        border: 1px solid #eee;
+        padding: 6px 12px;
+        border-radius: 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .perm-badge:hover {
+        border-color: #d93025;
+        background: #fff1f0;
+    }
+
+    .btn-remove-perm {
+        background: none;
+        border: none;
+        color: #ff4d4f;
+        margin-left: 8px;
+        padding: 0 4px;
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    .btn-remove-perm:hover {
+        color: #cf1322;
+    }
+
+    /* Nút thêm quyền */
+    .btn-add-perm {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-add-perm:hover {
+        background: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        color: #fff;
+    }
+
+    .no-data {
+        color: #999;
+        font-style: italic;
+        font-size: 0.9rem;
+    }
+
+    hr {
+        opacity: 0.1;
+        margin: 25px 0;
+    }
+</style>
+
+<div class="perm-container">
+    <div class="d-flex align-items-center mb-4">
+        <a href="/Admin/Index" class="btn btn-sm btn-outline-secondary me-3" style="border-radius: 8px;">← Quay lại</a>
+        <h2 class="m-0" style="font-weight: 700;">🔑 Quản lý quyền</h2>
+    </div>
+
+    <div class="user-info-card">
+        <div class="text-muted small text-uppercase">Tài khoản đang chỉnh sửa</div>
+        <strong style="font-size: 1.1rem;">@Model.User.Email</strong>
+    </div>
+
+    <div class="section-title">
+        <span>🛡️ Quyền hiện có</span>
+    </div>
+    
+    <div class="mb-4">
+        @{
+            var currentClaims = Model.Claims.Where(c => c.Type == "Permission").ToList();
+            if (!currentClaims.Any())
+            {
+                <span class="no-data">Người dùng này chưa có quyền cụ thể nào.</span>
+            }
+            else
+            {
+                foreach (var claim in currentClaims)
+                {
+                    <div class="perm-badge">
+                        @claim.Value
+                        <form method="post" asp-action="RemovePermission" class="d-inline">
+                            <input type="hidden" name="userId" value="@Model.User.Id" />
+                            <input type="hidden" name="permission" value="@claim.Value" />
+                            <button type="submit" class="btn-remove-perm" title="Gỡ quyền">×</button>
+                        </form>
+                    </div>
+                }
+            }
+        }
+    </div>
+
+    <hr />
+
+    <div class="section-title">
+        <span>✨ Cấp quyền mới</span>
+    </div>
+
+    <div class="d-flex flex-wrap">
+        @{
+            var availablePermissions = (ViewBag.AllPermissions as List<string>) ?? new List<string>();
+            var hasNewPerms = false;
+
+            foreach (var p in availablePermissions)
+            {
+                if (!Model.Claims.Any(c => c.Type == "Permission" && c.Value == p))
+                {
+                    hasNewPerms = true;
+                    <form method="post" asp-action="AddPermission" class="d-inline">
+                        <input type="hidden" name="userId" value="@Model.User.Id" />
+                        <input type="hidden" name="permission" value="@p" />
+                        <button type="submit" class="btn-add-perm">+ @p</button>
+                    </form>
+                }
+            }
+
+            if (!hasNewPerms)
+            {
+                <span class="no-data">Tài khoản này đã sở hữu tất cả các quyền hiện có.</span>
+            }
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 }

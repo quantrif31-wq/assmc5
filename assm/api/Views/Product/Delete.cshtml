@@ -1,13 +1,112 @@
 ﻿@model Lab4.Models.Product
 
-<h2>Ẩn sản phẩm</h2>
+@{
+    ViewData["Title"] = "Xác nhận ẩn sản phẩm";
+}
 
-<div class="alert alert-warning">
-    Bạn có chắc muốn ẩn <strong>@Model.Name</strong>?
+<style>
+    /* Container phong cách kính mờ */
+    .glass-delete-wrap {
+        width: min(500px, calc(100% - 40px));
+        margin: 80px auto;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Tiêu đề rỗng đồng bộ trang chủ */
+    .glass-title-warn {
+        font-weight: 900;
+        letter-spacing: .08em;
+        font-size: 28px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.2px rgba(0,0,0,.4);
+        margin-bottom: 20px;
+    }
+
+    /* Box cảnh báo tinh tế */
+    .warning-box {
+        background: rgba(255, 243, 205, 0.5); /* Vàng nhạt trong suốt */
+        border: 1px solid rgba(255, 238, 186, 0.5);
+        padding: 20px;
+        border-radius: 14px;
+        margin-bottom: 30px;
+        color: #856404;
+        font-weight: 600;
+    }
+
+    .product-highlight {
+        display: block;
+        font-size: 1.2rem;
+        color: var(--ink);
+        font-weight: 800;
+        margin-top: 5px;
+    }
+
+    /* Nút bấm */
+    .btn-group-glass {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-hide-ink {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        font-size: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-hide-ink:hover {
+        background: rgba(211, 47, 47, 0.9); /* Chuyển sang đỏ đậm khi hover */
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .btn-cancel-glass {
+        background: transparent;
+        color: rgba(0,0,0,0.5);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 13px;
+        transition: 0.2s;
+    }
+
+    .btn-cancel-glass:hover {
+        color: var(--ink);
+        text-decoration: underline;
+    }
+</style>
+
+<div class="glass-delete-wrap">
+    <h2 class="glass-title-warn">Archive</h2>
+
+    <div class="warning-box">
+        Bạn có chắc chắn muốn ẩn sản phẩm này khỏi hệ thống kinh doanh?
+        <span class="product-highlight">@Model.Name</span>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        <input type="hidden" asp-for="Id" />
+        
+        <div class="btn-group-glass">
+            <button type="submit" class="btn-hide-ink">Xác nhận ẩn</button>
+            <a asp-action="Index" class="btn-cancel-glass">Quay lại danh sách</a>
+        </div>
+    </form>
 </div>
-
-<form asp-action="Delete" method="post">
-    <input type="hidden" asp-for="Id" />
-    <button type="submit" class="btn btn-danger">Ẩn</button>
-    <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
-</form>

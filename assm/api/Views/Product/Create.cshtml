@@ -1,18 +1,112 @@
 ﻿@model Lab4.Models.Product
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <h2 class="mb-4">Thêm sản phẩm</h2>
+@{
+    ViewData["Title"] = "Thêm sản phẩm mới";
+}
 
-            <form asp-action="Create" method="post">
-                <partial name="_Form" />
+<style>
+    /* Wrapper bao quanh để căn chỉnh theo layout trang chủ */
+    .create-product-wrap {
+        width: min(800px, calc(100% - 40px));
+        margin: 40px auto;
+        position: relative;
+        z-index: 1;
+    }
 
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-success">Lưu</button>
-                    <a asp-action="Index" class="btn btn-secondary ms-2">Quay lại</a>
-                </div>
-            </form>
-        </div>
+    /* Thẻ kính mờ chính */
+    .glass-create-card {
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Tiêu đề chữ rỗng theo phong cách WELCOME */
+    .glass-title {
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: .1em;
+        font-size: 32px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(0,0,0,.35);
+        margin-bottom: 35px;
+    }
+
+    /* Nhóm nút bấm đồng bộ với trang Home */
+    .btn-group-modern {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+    }
+
+    .btn-save-ink {
+        flex: 2;
+        border: 1px solid rgba(0,0,0,.40);
+        background: rgba(0,0,0,.75);
+        color: #fff;
+        padding: 12px 30px;
+        border-radius: 6px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        font-size: 13px;
+        text-transform: uppercase;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .btn-save-ink:hover {
+        background: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 18px rgba(0,0,0,.18);
+    }
+
+    .btn-back-glass {
+        flex: 1;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid rgba(0,0,0,0.1);
+        background: rgba(255,255,255,0.4);
+        color: rgba(0,0,0,0.6);
+        padding: 12px 20px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        transition: all 0.2s;
+    }
+
+    .btn-back-glass:hover {
+        background: rgba(0,0,0,0.05);
+        color: #000;
+    }
+</style>
+
+<div class="create-product-wrap">
+    <h2 class="glass-title">New Product</h2>
+
+    <div class="glass-create-card">
+        <form asp-action="Create" method="post">
+            @* Sử dụng lại Form đã được style theo Glassmorphism ở bước trước *@
+            <partial name="_Form" />
+
+            <div class="btn-group-modern">
+                <button type="submit" class="btn-save-ink">
+                    💾 Lưu sản phẩm
+                </button>
+                <a asp-action="Index" class="btn-back-glass">
+                    Quay lại
+                </a>
+            </div>
+        </form>
     </div>
 </div>
+
+@* Sparkle SVG trang trí ở góc để đồng nhất với trang chủ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .15; pointer-events: none;">
+    <path fill="var(--ink)" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>

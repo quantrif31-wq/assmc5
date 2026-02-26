@@ -1,48 +1,189 @@
 ﻿@using lab4.Models
-
 @model List<ApplicationUser>
 
-<h2>👥 Quản lý tài khoản</h2>
+@{
+    ViewData["Title"] = "Manage Users";
+}
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Email</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model)
-        {
-            var isLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.Now;
+<style>
+    /* Container tổng thể */
+    .admin-container {
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        border-radius: 18px;
+        box-shadow: 0 26px 60px rgba(0,0,0,.08);
+        border: 1px solid rgba(0,0,0,.06);
+        margin-top: 20px;
+    }
 
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .admin-header h2 {
+        font-weight: 700;
+        color: #222;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+
+    /* Table Styling */
+    .custom-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px; /* Tạo khoảng cách giữa các hàng */
+    }
+
+    .custom-table thead th {
+        background: transparent;
+        border: none;
+        color: #888;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 10px 20px;
+    }
+
+    .custom-table tbody tr {
+        background: #fff;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 12px;
+    }
+
+    .custom-table tbody tr:hover {
+        transform: scale(1.01);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+    }
+
+    .custom-table td {
+        padding: 15px 20px;
+        border: none;
+        vertical-align: middle;
+        color: #444;
+        border-top: 1px solid #f8f8f8;
+        border-bottom: 1px solid #f8f8f8;
+    }
+
+    /* Bo góc cho hàng đầu và cuối của mỗi row */
+    .custom-table td:first-child {
+        border-left: 1px solid #f8f8f8;
+        border-radius: 12px 0 0 12px;
+    }
+
+    .custom-table td:last-child {
+        border-right: 1px solid #f8f8f8;
+        border-radius: 0 12px 12px 0;
+    }
+
+    /* Badges trạng thái */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #e6f7ed;
+        color: #1a8a4d;
+    }
+
+    .status-locked {
+        background: #ffebeb;
+        color: #d93025;
+    }
+
+    /* Buttons */
+    .btn-action {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #f0f0f0;
+        color: #333;
+    }
+
+    .btn-edit:hover {
+        background: #e5e5e5;
+    }
+
+    .btn-lock {
+        background: #333;
+        color: #fff;
+    }
+
+    .btn-lock:hover {
+        background: #000;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .btn-unlock {
+        background: #fff;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+</style>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h2>👥 Quản lý tài khoản</h2>
+        <span class="text-muted small">Tổng cộng: @Model.Count người dùng</span>
+    </div>
+
+    <table class="custom-table">
+        <thead>
             <tr>
-                <td>@user.Email</td>
-                <td>
-                    @if (isLocked)
-                    {
-                        <span class="text-danger">🔒 Bị khóa</span>
-                    }
-                    else
-                    {
-                        <span class="text-success">✔ Hoạt động</span>
-                    }
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-primary"
-                       href="/Admin/Manage/@user.Id">Quyền</a>
-
-                    <form method="post"
-                          asp-action="ToggleLock"
-                          class="d-inline">
-                        <input type="hidden" name="userId" value="@user.Id" />
-                        <button class="btn btn-sm btn-warning">
-                            @(isLocked ? "Mở khóa" : "Khóa")
-                        </button>
-                    </form>
-                </td>
+                <th>Email người dùng</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Hành động</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var user in Model)
+            {
+                var isLocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.Now;
+
+                <tr>
+                    <td>
+                        <div style="font-weight: 600;">@user.Email</div>
+                        <div class="text-muted small">ID: @user.Id.ToString().Substring(0, 8)...</div>
+                    </td>
+                    <td>
+                        @if (isLocked)
+                        {
+                            <span class="status-badge status-locked">🔒 Bị khóa</span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-active">✔ Hoạt động</span>
+                        }
+                    </td>
+                    <td class="text-end">
+                        <a class="btn-action btn-edit me-1" href="/Admin/Manage/@user.Id">
+                            Phân quyền
+                        </a>
+
+                        <form method="post" asp-action="ToggleLock" class="d-inline">
+                            <input type="hidden" name="userId" value="@user.Id" />
+                            <button type="submit" class="btn-action @(isLocked ? "btn-unlock" : "btn-lock")">
+                                @(isLocked ? "Mở khóa" : "Khóa")
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

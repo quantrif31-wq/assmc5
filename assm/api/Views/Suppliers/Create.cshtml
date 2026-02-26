@@ -1,27 +1,146 @@
 ﻿@model lab4.Models.Supplier
 
-<h2>Thêm nhà cung cấp</h2>
+@{
+    ViewData["Title"] = "Thêm nhà cung cấp";
+}
 
-<form asp-action="Create" method="post">
-    <div class="mb-3">
-        <label>Mã NCC</label>
-        <input asp-for="Code" class="form-control" />
+<style>
+    /* Wrapper để căn giữa và tạo khoảng cách với lề page */
+    .supplier-create-wrap {
+        width: min(650px, calc(100% - 40px));
+        margin: 40px auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Thẻ kính mờ chính */
+    .glass-form-card {
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Tiêu đề chữ rỗng theo phong cách WELCOME */
+    .glass-title {
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: .1em;
+        font-size: 32px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.35);
+        margin-bottom: 35px;
+    }
+
+    /* Label tinh tế: in hoa, nhỏ, đậm */
+    .glass-label {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(0, 0, 0, 0.45);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    /* Input phong cách xuyên thấu */
+    .glass-input {
+        background: rgba(255, 255, 255, 0.6) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border-radius: 10px !important;
+        padding: 12px 16px !important;
+        font-weight: 600;
+        color: var(--ink) !important;
+        transition: all 0.3s ease;
+    }
+
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-color: var(--ink) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
+        outline: none;
+    }
+
+    /* Nút bấm đồng bộ với phong cách trang chủ */
+    .btn-save-ink {
+        width: 100%;
+        border: 1px solid rgba(0, 0, 0, 0.40);
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        padding: 14px;
+        border-radius: 6px;
+        font-weight: 800;
+        letter-spacing: .1em;
+        font-size: 13px;
+        text-transform: uppercase;
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 20px;
+    }
+
+    .btn-save-ink:hover {
+        background: #000;
+        transform: translateY(-2px);
+    }
+
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: rgba(0,0,0,0.45);
+        font-size: 13px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+        color: var(--ink);
+    }
+</style>
+
+<div class="supplier-create-wrap">
+    <h2 class="glass-title">New Supplier</h2>
+
+    <div class="glass-form-card">
+        <form asp-action="Create" method="post">
+            
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <label class="glass-label">Mã nhà cung cấp</label>
+                    <input asp-for="Code" class="form-control glass-input" placeholder="VD: NCC001" />
+                </div>
+                <div class="col-md-8 mb-4">
+                    <label class="glass-label">Tên nhà cung cấp</label>
+                    <input asp-for="Name" class="form-control glass-input" placeholder="Tên công ty/đối tác..." />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="glass-label">Địa chỉ Email</label>
+                <input asp-for="Email" class="form-control glass-input" placeholder="example@supplier.com" />
+            </div>
+
+            <div class="mb-4">
+                <label class="glass-label">Số điện thoại</label>
+                <input asp-for="Phone" class="form-control glass-input" placeholder="090..." />
+            </div>
+
+            <button type="submit" class="btn-save-ink">
+                💾 Lưu thông tin
+            </button>
+
+            <a asp-action="Index" class="back-link">Quay lại danh sách</a>
+        </form>
     </div>
+</div>
 
-    <div class="mb-3">
-        <label>Tên NCC</label>
-        <input asp-for="Name" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Email</label>
-        <input asp-for="Email" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label>Điện thoại</label>
-        <input asp-for="Phone" class="form-control" />
-    </div>
-
-    <button class="btn btn-success">Lưu</button>
-</form>
+@* Sparkle trang trí đồng bộ trang chủ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .1; pointer-events: none;">
+    <path fill="var(--ink)" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>

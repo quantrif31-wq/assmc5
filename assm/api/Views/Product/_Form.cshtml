@@ -1,31 +1,92 @@
 ﻿@model Lab4.Models.Product
 
-<div class="mb-3">
-    <label asp-for="Name" class="form-label"></label>
-    <input asp-for="Name" class="form-control" />
-</div>
+<style>
+    /* Container phong cách kính mờ cho form */
+    .glass-form-body {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+    }
 
-<div class="mb-3">
-    <label asp-for="Description" class="form-label"></label>
-    <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-</div>
+    /* Label tinh tế (nhỏ, in hoa, đậm) */
+    .glass-label {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 8px;
+        display: block;
+    }
 
-<div class="mb-3">
-    <label asp-for="PriceVnd" class="form-label"></label>
-    <input asp-for="PriceVnd" class="form-control" />
-</div>
+    /* Input & Textarea phong cách kính */
+    .glass-input {
+        background: rgba(255, 255, 255, 0.6) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border-radius: 10px !important;
+        padding: 12px 16px !important;
+        color: var(--ink) !important;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
 
-<div class="mb-3">
-    <label asp-for="ImageUrl" class="form-label"></label>
-    <input asp-for="ImageUrl" class="form-control" />
-</div>
+    .glass-input:focus {
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-color: var(--ink) !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05) !important;
+        outline: none;
+    }
 
-<div class="mb-3">
-    <label asp-for="SortOrder" class="form-label"></label>
-    <input asp-for="SortOrder" class="form-control" />
-</div>
+    /* Custom Checkbox */
+    .glass-check {
+        cursor: pointer;
+    }
 
-<div class="form-check mb-3">
-    <input asp-for="IsActive" class="form-check-input" />
-    <label asp-for="IsActive" class="form-check-label"></label>
+    .glass-check-input:checked {
+        background-color: var(--ink);
+        border-color: var(--ink);
+    }
+
+    .glass-check-label {
+        font-weight: 700;
+        color: var(--ink);
+        cursor: pointer;
+    }
+</style>
+
+<div class="glass-form-body">
+    <div class="mb-4">
+        <label asp-for="Name" class="glass-label">Tên sản phẩm</label>
+        <input asp-for="Name" class="form-control glass-input" placeholder="Nhập tên sản phẩm..." />
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Description" class="glass-label">Mô tả chi tiết</label>
+        <textarea asp-for="Description" class="form-control glass-input" rows="3" placeholder="Mô tả ngắn gọn về sản phẩm..."></textarea>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <label asp-for="PriceVnd" class="glass-label">Giá bán (VND)</label>
+            <input asp-for="PriceVnd" class="form-control glass-input" placeholder="0" />
+        </div>
+        <div class="col-md-6 mb-4">
+            <label asp-for="SortOrder" class="glass-label">Thứ tự hiển thị</label>
+            <input asp-for="SortOrder" class="form-control glass-input" placeholder="0" />
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="ImageUrl" class="glass-label">Đường dẫn hình ảnh (URL)</label>
+        <input asp-for="ImageUrl" class="form-control glass-input" placeholder="https://..." />
+    </div>
+
+    <div class="form-check mb-2 glass-check">
+        <input asp-for="IsActive" class="form-check-input glass-check-input" />
+        <label asp-for="IsActive" class="form-check-label glass-check-label">Kích hoạt kinh doanh</label>
+    </div>
 </div>

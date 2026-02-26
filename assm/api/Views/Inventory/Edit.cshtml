@@ -4,22 +4,134 @@
     ViewData["Title"] = "Cập nhật tồn kho";
 }
 
-<h2>Cập nhật tồn kho</h2>
+<style>
+    /* Container chính phong cách Glassmorphism */
+    .glass-card {
+        max-width: 550px;
+        margin: 50px auto;
+        padding: 40px;
+        /* Hiệu ứng kính */
+        background: rgba(255, 255, 255, 0.4); 
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        /* Viền sáng giả lập cạnh kính */
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 24px;
+        /* Đổ bóng lan tỏa mượt mà */
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 1;
+    }
 
-<form method="post">
-    @Html.AntiForgeryToken()
+    .glass-card h2 {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--ink, #2c2c2c);
+        margin-bottom: 30px;
+        text-align: center;
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Sản phẩm</label>
-        <input class="form-control" value="@Model.Product?.Name" disabled />
-    </div>
+    /* Tùy chỉnh nhãn (label) */
+    .glass-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 8px;
+        display: block;
+    }
 
-    <div class="mb-3">
-        <label class="form-label">Số lượng tồn</label>
-        <input type="number" name="quantity" class="form-control"
-               value="@Model.Quantity" min="0" required />
-    </div>
+    /* Input phong cách kính */
+    .glass-control {
+        background: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
+        font-weight: 600;
+        color: var(--ink) !important;
+        transition: all 0.3s ease;
+    }
 
-    <button type="submit" class="btn btn-success">Lưu</button>
-    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
-</form>
+    .glass-control:focus {
+        background: rgba(255, 255, 255, 0.8) !important;
+        border-color: rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3) !important;
+        outline: none;
+    }
+
+    .glass-control:disabled {
+        background: rgba(0, 0, 0, 0.03) !important;
+        opacity: 0.7;
+    }
+
+    /* Nhóm nút bấm */
+    .glass-btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 35px;
+    }
+
+    .btn-glass-save {
+        flex: 2;
+        background: var(--ink, #2c2c2c);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-glass-save:hover {
+        background: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-glass-back {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--ink);
+        text-decoration: none;
+        text-align: center;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .btn-glass-back:hover {
+        background: rgba(0, 0, 0, 0.1);
+        color: #000;
+    }
+</style>
+
+<div class="glass-card">
+    <h2>📦 Cập nhật tồn kho</h2>
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <div class="mb-4">
+            <label class="glass-label">Sản phẩm</label>
+            <input class="form-control glass-control" value="@Model.Product?.Name" disabled />
+        </div>
+
+        <div class="mb-4">
+            <label class="glass-label">Số lượng tồn thực tế</label>
+            <input type="number" name="quantity" class="form-control glass-control"
+                   value="@Model.Quantity" min="0" required autofocus />
+            <small class="text-muted mt-2 d-block" style="font-size: 11px;">
+                * Thay đổi giá trị này để điều chỉnh trực tiếp tồn kho hiện có.
+            </small>
+        </div>
+
+        <div class="glass-btn-group">
+            <button type="submit" class="btn-glass-save">Lưu thay đổi</button>
+            <a asp-action="Index" class="btn-glass-back">Quay lại</a>
+        </div>
+    </form>
+</div>

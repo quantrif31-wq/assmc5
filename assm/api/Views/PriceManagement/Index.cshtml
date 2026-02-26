@@ -1,24 +1,143 @@
-﻿<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Sản phẩm</th>
-            <th>Giá bán</th>
-            <th>Tồn kho</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
+﻿@model IEnumerable<Lab4.Models.Product>
+
+@{
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<style>
+    /* Container chính phong cách Glassmorphism */
+    .product-list-wrap {
+        width: min(1200px, calc(100% - 40px));
+        margin: 40px auto;
+        padding: 35px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 1;
+    }
+
+    .product-list-wrap h2 {
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: var(--ink, #2c2c2c);
+        margin-bottom: 25px;
+    }
+
+    /* Bảng phong cách hàng nổi (Floating Rows) */
+    .glass-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px; /* Khoảng cách giữa các hàng */
+    }
+
+    .glass-table thead th {
+        border: none;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 10px 20px;
+    }
+
+    .glass-table tbody tr {
+        background: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+    }
+
+    .glass-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .glass-table td {
+        padding: 18px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    /* Bo góc cho hàng */
+    .glass-table td:first-child { border-radius: 12px 0 0 12px; }
+    .glass-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Nút bấm tinh tế */
+    .action-link {
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .action-link:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: #000;
+    }
+
+    .price-tag {
+        font-weight: 800;
+        color: var(--ink);
+    }
+
+    .stock-badge {
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.05);
+    }
+</style>
+
+<div class="product-list-wrap">
+    <h2>📦 Quản lý sản phẩm</h2>
+
+    [Image of a modern e-commerce product catalog table with clean typography and soft shadows]
+
+    <table class="glass-table">
+        <thead>
             <tr>
-                <td>@p.Name</td>
-                <td>@p.PriceText</td>
-                <td>@p.Inventory?.Quantity</td>
-                <td>
-                    <a asp-action="History" asp-route-productId="@p.Id">📊 Lịch sử</a> |
-                    <a asp-action="ChangeSalePrice" asp-route-productId="@p.Id">✏️ Đổi giá</a>
-                </td>
+                <th>Sản phẩm</th>
+                <th>Giá bán</th>
+                <th>Tồn kho</th>
+                <th class="text-end">Hành động</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>
+                        <div style="font-weight: 700;">@p.Name</div>
+                        <div style="font-size: 11px; opacity: 0.5;">Mã: #@p.Id</div>
+                    </td>
+                    <td class="price-tag">@p.PriceText</td>
+                    <td>
+                        <span class="stock-badge">
+                            @p.Inventory?.Quantity unit
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a class="action-link" asp-action="History" asp-route-productId="@p.Id">
+                            📊 <span>Lịch sử</span>
+                        </a>
+                        <span style="opacity: 0.2; margin: 0 5px;">|</span>
+                        <a class="action-link" asp-action="ChangeSalePrice" asp-route-productId="@p.Id">
+                            ✏️ <span>Đổi giá</span>
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 [Route("Chat")]
 public class ChatController : Controller
@@ -24,81 +23,89 @@ public class ChatController : Controller
         _context = context;
     }
 
-    // ========================== ASK ==========================
-
     [HttpPost("Ask")]
     public async Task<IActionResult> Ask([FromBody] ChatRequest req)
     {
         if (req == null || string.IsNullOrWhiteSpace(req.message))
-            return Json(new { reply = "Anh/chị muốn dùng gì hôm nay ạ? 😊" });
+            return Json(new { reply = "Bạn cần hỗ trợ gì nè? 😊" });
 
         var userMessage = req.message.Trim();
 
+        // ================= SHORT TERM MEMORY =================
         var history = GetHistory();
-        var memory = GetCustomerMemory();
-
-        history.Add(new ChatMessage { Role = "user", Content = userMessage });
-
-        await UpdateMemory(memory, userMessage);
-
-        // ====== CHỐT ĐƠN → HỎI THANH TOÁN ======
-        if (memory.Stage == ConversationStage.ConfirmingOrder && memory.Cart.Any())
+        history.Add(new ChatMessage
         {
-            memory.Stage = ConversationStage.AskingPaymentMethod;
-            SaveCustomerMemory(memory);
+            Role = "user",
+            Content = userMessage
+        });
 
-            return Json(new
-            {
-                reply = "<b>Đơn của anh/chị:</b><br>" +
-                        string.Join("<br>", memory.Cart.Select(x =>
-                            $"{x.ProductName} x{x.Quantity}")) +
-                        "<br><br>Anh/chị muốn thanh toán bằng tiền mặt hay chuyển khoản ạ?"
-            });
-        }
+        // giữ 16 message gần nhất (8 lượt hỏi đáp)
+        if (history.Count > 16)
+            history = history.Skip(history.Count - 16).ToList();
 
-        // ====== ĐÃ CHỌN THANH TOÁN → TẠO ORDER ======
-        if (memory.Stage == ConversationStage.Payment && memory.Cart.Any())
-        {
-            var order = await CreateOrderFromMemory(memory);
+        // ================= STRUCTURED MEMORY =================
+        var customerMemory = GetCustomerMemory();
+        UpdateCustomerMemory(customerMemory, userMessage);
+        SaveCustomerMemory(customerMemory);
 
-            var reply = $"<b>Đặt hàng thành công 🎉</b><br>" +
-                        $"Mã đơn: {order.Id}<br>" +
-                        $"Tổng tiền: {order.Total:N0}đ<br><br>" +
-                        $"Cảm ơn anh/chị đã ủng hộ quán ❤️";
+        // ================= PRODUCT =================
+        var products = await GetRelevantProducts(userMessage);
 
-            memory.Cart.Clear();
-            memory.Stage = ConversationStage.None;
-            memory.PaymentMethod = null;
-
-            SaveCustomerMemory(memory);
-
-            return Json(new { reply });
-        }
-
-        SaveCustomerMemory(memory);
-
-        // ====== AI CHAT ======
-        var products = await _context.Products
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.SortOrder)
-            .ToListAsync();
-
-        var prompt = BuildPrompt(history, products, memory);
+        // ================= BUILD PROMPT =================
+        var prompt = BuildPrompt(history, products, customerMemory);
 
         var client = _httpFactory.CreateClient();
-        var payload = JsonSerializer.Serialize(new { message = prompt });
+        client.Timeout = TimeSpan.FromSeconds(20);
 
-        var response = await client.PostAsync(
-            "http://127.0.0.1:5678/webhook/chatbot",
-            new StringContent(payload, Encoding.UTF8, "application/json"));
+        var payload = JsonSerializer.Serialize(new
+        {
+            message = prompt
+        });
+
+        var content = new StringContent(
+            payload,
+            Encoding.UTF8,
+            "application/json"
+        );
+
+        HttpResponseMessage response;
+
+        try
+        {
+            response = await client.PostAsync(
+                "http://127.0.0.1:5678/webhook/chatbot",
+                content
+            );
+        }
+        catch (Exception ex)
+        {
+            return Json(new { reply = "Exception: " + ex.Message });
+        }
 
         var raw = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<ChatResponse>(raw);
 
+        if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(raw))
+            return Json(new { reply = "Bò hơi mất kết nối 😅" });
+
+        ChatResponse? result;
+
+        try
+        {
+            result = JsonSerializer.Deserialize<ChatResponse>(raw);
+        }
+        catch
+        {
+            return Json(new { reply = "AI trả dữ liệu không hợp lệ." });
+        }
+
+        if (result == null || string.IsNullOrWhiteSpace(result.reply))
+            return Json(new { reply = "Bò chưa hiểu lắm 😅" });
+
+        // ================= SAVE ASSISTANT MESSAGE =================
         history.Add(new ChatMessage
         {
             Role = "assistant",
-            Content = result?.reply ?? ""
+            Content = result.reply
         });
 
         SaveHistory(history);
@@ -106,117 +113,121 @@ public class ChatController : Controller
         return Json(result);
     }
 
-    // ========================== MEMORY ==========================
+    // =========================================================
+    // ================= SHORT TERM MEMORY =====================
+    // =========================================================
 
-    private async Task UpdateMemory(CustomerMemory memory, string message)
+    private List<ChatMessage> GetHistory()
+    {
+        var data = HttpContext.Session.GetString(CHAT_HISTORY_KEY);
+
+        if (string.IsNullOrEmpty(data))
+            return new List<ChatMessage>();
+
+        return JsonSerializer.Deserialize<List<ChatMessage>>(data)
+               ?? new List<ChatMessage>();
+    }
+
+    private void SaveHistory(List<ChatMessage> history)
+    {
+        HttpContext.Session.SetString(
+            CHAT_HISTORY_KEY,
+            JsonSerializer.Serialize(history)
+        );
+    }
+
+    // =========================================================
+    // ================= STRUCTURED MEMORY =====================
+    // =========================================================
+
+    private CustomerMemory GetCustomerMemory()
+    {
+        var data = HttpContext.Session.GetString(CUSTOMER_MEMORY_KEY);
+
+        if (string.IsNullOrEmpty(data))
+            return new CustomerMemory();
+
+        return JsonSerializer.Deserialize<CustomerMemory>(data)
+               ?? new CustomerMemory();
+    }
+
+    private void SaveCustomerMemory(CustomerMemory memory)
+    {
+        HttpContext.Session.SetString(
+            CUSTOMER_MEMORY_KEY,
+            JsonSerializer.Serialize(memory)
+        );
+    }
+
+    private void UpdateCustomerMemory(CustomerMemory memory, string message)
     {
         var lower = message.ToLower();
-        var products = await _context.Products.ToListAsync();
 
-        var quantityMatch = Regex.Match(lower, @"\b\d+\b");
-        int quantity = quantityMatch.Success ? int.Parse(quantityMatch.Value) : 0;
+        // Size
+        if (lower.Contains("size m")) memory.SelectedSize = "M";
+        if (lower.Contains("size l")) memory.SelectedSize = "L";
+        if (lower.Contains("size s")) memory.SelectedSize = "S";
 
-        var matchedProduct = products
-            .FirstOrDefault(p => lower.Contains(p.Name.ToLower()));
+        // Màu
+        if (lower.Contains("màu đen")) memory.SelectedColor = "Đen";
+        if (lower.Contains("màu trắng")) memory.SelectedColor = "Trắng";
+        if (lower.Contains("màu đỏ")) memory.SelectedColor = "Đỏ";
 
-        // Chọn món nhưng chưa có số lượng
-        if (matchedProduct != null && quantity == 0)
-        {
-            memory.TempProductId = matchedProduct.Id;
-            memory.TempProductName = matchedProduct.Name;
-            memory.Stage = ConversationStage.AskingQuantity;
-            return;
-        }
+        // Quan tâm sản phẩm
+        var product = _context.Products
+            .FirstOrDefault(p =>
+                lower.Contains(p.Name.ToLower()));
 
-        // Đang hỏi số lượng
-        if (memory.Stage == ConversationStage.AskingQuantity && quantity > 0)
-        {
-            var existing = memory.Cart
-                .FirstOrDefault(x => x.ProductId == memory.TempProductId);
+        if (product != null)
+            memory.InterestedProduct = product.Name;
 
-            if (existing != null)
-                existing.Quantity += quantity;
-            else
-            {
-                memory.Cart.Add(new CartItemMemory
-                {
-                    ProductId = memory.TempProductId!.Value,
-                    ProductName = memory.TempProductName!,
-                    Quantity = quantity
-                });
-            }
-
-            memory.TempProductId = null;
-            memory.TempProductName = null;
-            memory.Stage = ConversationStage.AskingForMore;
-            return;
-        }
+        // Ngân sách
+        if (lower.Contains("dưới 500"))
+            memory.BudgetRange = "Dưới 500k";
 
         // Chốt đơn
         if (lower.Contains("chốt") ||
-            lower.Contains("thanh toán") ||
-            lower.Contains("đủ rồi"))
+            lower.Contains("lấy luôn") ||
+            lower.Contains("mua luôn"))
         {
-            memory.Stage = ConversationStage.ConfirmingOrder;
-            return;
-        }
-
-        // Chọn phương thức thanh toán
-        if (lower.Contains("tiền mặt") ||
-            lower.Contains("chuyển khoản") ||
-            lower.Contains("momo"))
-        {
-            memory.PaymentMethod = message;
-            memory.Stage = ConversationStage.Payment;
-            return;
+            memory.ReadyToBuy = true;
         }
     }
 
-    // ========================== CREATE ORDER ==========================
+    // =========================================================
+    // ================= PRODUCT FILTER ========================
+    // =========================================================
 
-    private async Task<Order> CreateOrderFromMemory(CustomerMemory memory)
+    private async Task<List<Product>> GetRelevantProducts(string message)
     {
-        var order = new Order
+        var keyword = message.ToLower();
+
+        var query = _context.Products
+            .Where(p => p.IsActive);
+
+        query = query.Where(p =>
+            p.Name.ToLower().Contains(keyword));
+
+        var products = await query
+            .OrderBy(p => p.SortOrder)
+            .Take(3)
+            .ToListAsync();
+
+        if (!products.Any())
         {
-            CreatedAt = DateTime.UtcNow,
-            Subtotal = 0,
-            Items = new List<OrderItem>()
-        };
-
-        foreach (var item in memory.Cart)
-        {
-            var product = await _context.Products.FindAsync(item.ProductId);
-            if (product == null) continue;
-
-            var lineTotal = product.PriceVnd * item.Quantity;
-
-            order.Subtotal += lineTotal;
-
-            order.Items.Add(new OrderItem
-            {
-                ProductId = product.Id,
-                Quantity = item.Quantity,
-                UnitPrice = product.PriceVnd,
-                LineTotal = lineTotal
-            });
-
-            var inventory = await _context.Inventories
-                .FirstOrDefaultAsync(i => i.ProductId == product.Id);
-
-            if (inventory != null)
-                inventory.Quantity -= item.Quantity;
+            products = await _context.Products
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.SortOrder)
+                .Take(3)
+                .ToListAsync();
         }
 
-        order.Tax = 0;
-        order.Total = order.Subtotal;
-
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        return order;
+        return products;
     }
 
-    // ========================== PROMPT ==========================
+    // =========================================================
+    // ================= PROMPT BUILDER ========================
+    // =========================================================
 
     private string BuildPrompt(
         List<ChatMessage> history,
@@ -224,53 +235,37 @@ public class ChatController : Controller
         CustomerMemory memory)
     {
         var conversation = string.Join(" | ",
-            history.Select(m => $"{m.Role}: {m.Content}"));
+            history.Select(m => $"{m.Role}: {m.Content}")
+        );
 
-        var productJson = JsonSerializer.Serialize(
-            products.Select(p => new
-            {
-                p.Id,
-                p.Name,
-                p.PriceVnd,
-                p.Description
-            }));
+        var productList = string.Join(" | ",
+            products.Select(p => $"{p.Name} ({p.PriceVnd:N0} VNĐ)")
+        );
 
-        var cartInfo = memory.Cart.Any()
-            ? JsonSerializer.Serialize(memory.Cart)
-            : "Chưa có món nào";
+        var memoryInfo =
+            $"Khách quan tâm: {memory.InterestedProduct ?? "chưa rõ"}. " +
+            $"Màu đã chọn: {memory.SelectedColor ?? "chưa chọn"}. " +
+            $"Size đã chọn: {memory.SelectedSize ?? "chưa chọn"}. " +
+            $"Ngân sách: {memory.BudgetRange ?? "chưa rõ"}. " +
+            $"Sẵn sàng mua: {(memory.ReadyToBuy ? "Có" : "Chưa")}.";
 
-        return $""" Bạn là nhân viên quán ăn dễ mến, nói chuyện tự nhiên, lịch sự. QUY TẮC ỨNG XỬ: 1. Nếu Stage = AskingQuantity → Hỏi: "Anh/chị muốn mấy phần {memory.TempProductName} ạ?" 2. Nếu Stage = AskingForMore → Nói đã thêm vào giỏ, hỏi muốn dùng thêm món gì không. 3. Nếu Stage = ConfirmingOrder → Tóm tắt đơn hàng gọn gàng bằng HTML. → Sau đó hỏi khách muốn thanh toán bằng tiền mặt hay chuyển khoản. 4. Nếu Stage = AskingPaymentMethod → Nhắc khách chọn phương thức thanh toán. 5. Nếu Stage = Payment → Cảm ơn khách và xác nhận đơn. Luôn trả về HTML gọn: - <b> cho tên món - <br> để xuống dòng - Không dùng markdown - Không dùng ký tự | Giỏ hàng: {cartInfo} Stage: {memory.Stage} Lịch sử: {conversation} Menu: {productJson} """;
-    }
+        var isFirstMessage = history.Count <= 1;
 
-    // ========================== SESSION ==========================
+        var greetingRule = isFirstMessage
+            ? "Nếu là tin đầu có thể chào nhẹ một câu."
+            : "Không được chào lại.";
 
-    private List<ChatMessage> GetHistory()
-    {
-        var data = HttpContext.Session.GetString(CHAT_HISTORY_KEY);
-        return string.IsNullOrEmpty(data)
-            ? new List<ChatMessage>()
-            : JsonSerializer.Deserialize<List<ChatMessage>>(data) ?? new();
-    }
+        var prompt =
+            "Bạn là nhân viên bán hàng thân thiện. " +
+            "Nói chuyện tự nhiên như chat Facebook. " +
+            "Trả lời ngắn gọn đúng trọng tâm. " +
+            "Không bịa thông tin. " +
+            greetingRule + " " +
+            "Thông tin khách: " + memoryInfo + " " +
+            "Lịch sử gần đây: " + conversation + ". " +
+            "Sản phẩm hiện có: " + productList + ". " +
+            "Không hỏi lại thông tin khách đã cung cấp.";
 
-    private void SaveHistory(List<ChatMessage> history)
-    {
-        HttpContext.Session.SetString(
-            CHAT_HISTORY_KEY,
-            JsonSerializer.Serialize(history));
-    }
-
-    private CustomerMemory GetCustomerMemory()
-    {
-        var data = HttpContext.Session.GetString(CUSTOMER_MEMORY_KEY);
-        return string.IsNullOrEmpty(data)
-            ? new CustomerMemory()
-            : JsonSerializer.Deserialize<CustomerMemory>(data) ?? new();
-    }
-
-    private void SaveCustomerMemory(CustomerMemory memory)
-    {
-        HttpContext.Session.SetString(
-            CUSTOMER_MEMORY_KEY,
-            JsonSerializer.Serialize(memory));
+        return prompt;
     }
 }

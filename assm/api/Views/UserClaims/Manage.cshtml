@@ -1,41 +1,143 @@
 @using System.Security.Claims
 @model IList<Claim>
 
-<div class="container mt-5">
-    <div class="glass-panel p-5">
-        <h3 class="text-info mb-4">Phân quyền cho: <span class="text-warning">@ViewBag.UserName</span></h3>
+@{
+    ViewData["Title"] = "Claims Authorization";
+}
 
-        <!-- Form thêm quyền mới -->
-        <form asp-action="AddClaim" method="post" class="row g-3 mb-5 p-3 border border-secondary rounded">
-            <input type="hidden" name="userId" value="@ViewBag.UserId" />
-            <div class="col-md-8">
-                <select name="claimType" class="form-select bg-dark text-light border-info">
-                    <option value="CreateProduct">Quyền Tạo Sản Phẩm (CreateProduct) [2]</option>
-                    <option value="Admin">Quyền Quản Trị (Admin) [3]</option>
-                    <option value="Sales">Quyền Kinh Doanh (Sales) [3]</option>
-                </select>
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary w-100">Kích hoạt Claim</button>
-            </div>
-        </form>
+<div class="container-xxl py-5">
+    <div class="page-shell">
 
-        <h4 class="text-light mb-3">Danh sách quyền hiện có:</h4>
-        <div class="list-group">
-            @foreach (var claim in Model) {
-                <div class="list-group-item bg-transparent border-secondary text-light d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong class="text-success">@claim.Type</strong> 
-                        <span class="ms-3 badge bg-secondary">Value: @claim.Value</span>
-                    </div>
-                    <form asp-action="RemoveClaim" method="post" onsubmit="return confirm('Thu hồi quyền này?')">
-                        <input type="hidden" name="userId" value="@ViewBag.UserId" />
-                        <input type="hidden" name="claimType" value="@claim.Type" />
-                        <input type="hidden" name="claimValue" value="@claim.Value" />
-                        <button type="submit" class="btn btn-sm btn-danger">Thu hồi</button>
-                    </form>
-                </div>
-            }
+        <div class="page-head">
+            <div>
+                <h1 class="page-title">Phân quyền Claims</h1>
+                <p class="page-subtitle">Quản lý đặc quyền trực tiếp cho: <strong style="color: var(--accent)">@ViewBag.UserName</strong></p>
+            </div>
+            
+            <a asp-action="Index" class="btn-primary-soft" style="background: transparent; border-color: var(--border); color: var(--muted)">
+                ← Quay lại danh sách
+            </a>
         </div>
+
+        <div class="data-card mb-4" style="background: rgba(255,255,255,.02); padding: 24px;">
+            <form asp-action="AddClaim" method="post" class="row g-3 align-items-end">
+                <input type="hidden" name="userId" value="@ViewBag.UserId" />
+                
+                <div class="col-md-8">
+                    <label class="user-hint mb-2 d-block">Chọn đặc quyền hệ thống (Claim Type)</label>
+                    <select name="claimType" class="search-input" style="padding-left: 15px;">
+                        <option value="CreateProduct">Quyền Tạo Sản Phẩm (CreateProduct)</option>
+                        <option value="Admin">Quyền Quản Trị (Admin)</option>
+                        <option value="Sales">Quyền Kinh Doanh (Sales)</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4">
+                    <button type="submit" class="btn-save-enterprise w-100" style="background: var(--accent); color: #020617;">
+                        Kích hoạt Claim
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="data-card">
+            <div class="table-responsive">
+                <table class="table data-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Loại đặc quyền (Claim Type)</th>
+                            <th>Giá trị (Value)</th>
+                            <th class="text-end">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            @foreach (var claim in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="avatar" style="background: #334155; color: var(--accent); font-size: 14px;">
+                                                CL
+                                            </div>
+                                            <div class="user-email">@claim.Type</div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="id-pill" style="background: #e0f2fe; color: #0369a1; border: none;">
+                                            @claim.Value
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <form asp-action="RemoveClaim" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn thu hồi đặc quyền này?')" class="d-inline">
+                                            <input type="hidden" name="userId" value="@ViewBag.UserId" />
+                                            <input type="hidden" name="claimType" value="@claim.Type" />
+                                            <input type="hidden" name="claimValue" value="@claim.Value" />
+                                            <button type="submit" class="btn-revoke">
+                                                Thu hồi
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3" class="text-center py-5" style="color: var(--muted); background: #fff;">
+                                    Tài khoản này hiện chưa được cấp đặc quyền Claim nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-foot">
+                💡 Lưu ý: Claims được sử dụng cho phân quyền chi tiết (Fine-grained Authorization) vượt ngoài phạm vi của Roles.
+            </div>
+        </div>
+
     </div>
 </div>
+
+<style>
+    /* Bổ sung Style cho trang Claims */
+    
+    .btn-revoke {
+        background: #fff1f2;
+        color: #be123c;
+        border: 1px solid #fecdd3;
+        padding: 6px 14px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: .2s;
+    }
+
+    .btn-revoke:hover {
+        background: #be123c;
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+    /* Đảm bảo bảng trong card luôn sáng sủa và đúng chuẩn Enterprise */
+    .data-table tbody tr td {
+        background: #fff;
+        border-bottom: 1px solid var(--border-soft);
+    }
+
+    .data-table tbody tr:hover td {
+        background: #f8fafc;
+    }
+
+    /* Custom lại Select để ăn theo Style Search Input */
+    select.search-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+    }
+</style>

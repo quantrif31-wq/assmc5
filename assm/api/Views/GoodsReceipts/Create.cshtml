@@ -2,82 +2,201 @@
 @model lab4.Models.PurchaseOrder
 
 @{
+    ViewData["Title"] = "Nhập kho";
     var items = Model.Items.ToList();
 }
 
-<h2>Nhập kho – Đơn mua #@Model.Code</h2>
-<div asp-validation-summary="All" class="text-danger"></div>
+<style>
+    /* Container đồng bộ với hệ thống Admin */
+    .inventory-container {
+        max-width: 1100px;
+        margin: 30px auto;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        border-radius: 18px;
+        box-shadow: 0 26px 60px rgba(0,0,0,.08);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
 
-<form asp-action="Create" method="post">
-    <input type="hidden" name="purchaseOrderId" value="@Model.Id" />
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Sản phẩm</th>
-                <th>SL đặt</th>
-                <th>Đã nhận</th>
-                <th>Nhập kho</th>
-                <th>Giá nhập</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < items.Count; i++)
-            {
-                var item = items[i];
+    .header-section h2 {
+        font-weight: 800;
+        margin: 0;
+        color: #1a1a1a;
+    }
+
+    /* Bảng dữ liệu tối giản */
+    .inventory-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 25px;
+    }
+
+    .inventory-table thead th {
+        background: #f8f9fa;
+        padding: 15px;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #666;
+        letter-spacing: 1px;
+        border: none;
+    }
+
+    .inventory-table tbody td {
+        padding: 15px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f1f1;
+        background: #fff;
+    }
+
+    .inventory-table tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
+    .inventory-table tbody tr:last-child td:last-child { border-bottom-right-radius: 12px; }
+
+    /* Custom Input trong bảng */
+    .form-control-custom {
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+        padding: 8px 12px;
+        transition: all 0.2s;
+        font-size: 0.9rem;
+    }
+
+    .form-control-custom:focus {
+        border-color: #000;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+        outline: none;
+    }
+
+    /* Nút bấm */
+    .btn-confirm {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-confirm:hover {
+        background: #333;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        color: #fff;
+    }
+
+    .product-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .qty-badge {
+        background: #f0f0f0;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+</style>
+
+<div class="inventory-container">
+    <div class="header-section">
+        <div>
+            <h2>📦 Nhập kho</h2>
+            <p class="text-muted m-0">Đơn mua: <strong>#@Model.Code</strong></p>
+        </div>
+        <a href="/PurchaseOrders" class="btn btn-sm btn-light rounded-pill px-3"> Quay lại</a>
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <form asp-action="Create" method="post">
+        <input type="hidden" name="purchaseOrderId" value="@Model.Id" />
+
+        <table class="inventory-table">
+            <thead>
                 <tr>
-                    <td>
-                        @item.Product.Name
-                        <input type="hidden"
-                               name="items[@i].ProductId"
-                               value="@item.ProductId" />
-                    </td>
-
-                    <!-- SL ĐẶT -->
-                    <td>@item.QuantityOrdered</td>
-
-                    <!-- ĐÃ NHẬN -->
-                    <td>@item.QuantityReceived</td>
-
-                    <!-- NHẬP LẦN NÀY -->
-                    <td>
-                        <input name="items[@i].Quantity"
-                               type="number"
-                               min="0"
-                               max="@(item.QuantityOrdered - item.QuantityReceived)"
-                               class="form-control"
-                               required />
-                    </td>
-
-                    <!-- GIÁ NHẬP -->
-                    <td>
-                        <input name="items[@i].UnitCost"
-                               class="form-control unit-cost"
-                               data-product-id="@item.ProductId"
-                               value="@item.UnitPrice"
-                               type="number"
-                               step="0.01"
-                               required />
-                    </td>
+                    <th style="border-top-left-radius: 12px;">Sản phẩm</th>
+                    <th>SL đặt</th>
+                    <th>Đã nhận</th>
+                    <th width="180">Nhập lần này</th>
+                    <th width="180" style="border-top-right-radius: 12px;">Giá nhập</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < items.Count; i++)
+                {
+                    var item = items[i];
+                    var maxQty = item.QuantityOrdered - item.QuantityReceived;
+                    <tr>
+                        <td>
+                            <div class="product-name">@item.Product.Name</div>
+                            <input type="hidden" name="items[@i].ProductId" value="@item.ProductId" />
+                        </td>
 
-    <button class="btn btn-primary">
-        Xác nhận nhập kho
-    </button>
-</form>
+                        <td><span class="qty-badge">@item.QuantityOrdered</span></td>
+                        
+                        <td><span class="qty-badge text-success">@item.QuantityReceived</span></td>
+
+                        <td>
+                            <input name="items[@i].Quantity"
+                                   type="number"
+                                   min="0"
+                                   max="@maxQty"
+                                   class="form-control-custom w-100"
+                                   placeholder="Tối đa: @maxQty"
+                                   required />
+                        </td>
+
+                        <td>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-end-0" style="border-radius: 8px 0 0 8px;">$</span>
+                                <input name="items[@i].UnitCost"
+                                       class="form-control-custom unit-cost w-auto border-start-0"
+                                       data-product-id="@item.ProductId"
+                                       value="@item.UnitPrice"
+                                       type="number"
+                                       step="0.01"
+                                       style="border-radius: 0 8px 8px 0; flex: 1;"
+                                       required />
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <button class="btn-confirm">
+                <span>Xác nhận nhập kho</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+        </div>
+    </form>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-
             const supplierId = @Model.SupplierId;
 
             document.querySelectorAll(".unit-cost").forEach(input => {
                 const productId = input.dataset.productId;
 
-                // nếu PO không có giá hoặc giá = 0
+                // Tự động lấy giá nhập lần cuối nếu giá hiện tại trống hoặc bằng 0
                 if (!input.value || input.value == 0) {
                     fetch(`/PurchaseOrders/GetLastPurchasePrice?supplierId=${supplierId}&productId=${productId}`)
                         .then(res => res.json())
@@ -85,7 +204,8 @@
                             if (data.price && data.price > 0) {
                                 input.value = data.price;
                             }
-                        });
+                        })
+                        .catch(err => console.error("Lỗi lấy giá nhập cũ:", err));
                 }
             });
         });

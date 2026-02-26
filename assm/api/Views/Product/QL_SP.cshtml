@@ -1,65 +1,196 @@
 ﻿@model IEnumerable<Lab4.Models.Product>
 
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <h2 class="mb-3">Quản lý sản phẩm</h2>
+@{
+    ViewData["Title"] = "Quản lý danh mục";
+}
 
-            <a asp-action="Create" class="btn btn-primary mb-3">
-                ➕ Thêm sản phẩm
-            </a>
+<style>
+    /* Wrapper đồng bộ với hệ thống khung viền trang chủ */
+    .admin-list-wrap {
+        width: min(1200px, calc(100% - 64px));
+        margin: 22px auto 0;
+        position: relative;
+        z-index: 1;
+    }
 
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
+    /* Container hiệu ứng kính mờ */
+    .glass-panel {
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Tiêu đề chữ rỗng theo style WELCOME */
+    .admin-title {
+        text-align: left;
+        font-weight: 900;
+        letter-spacing: .1em;
+        font-size: 32px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.35);
+        margin-bottom: 25px;
+    }
+
+    /* Nút thêm mới theo style btn-explore */
+    .btn-create-ink {
+        display: inline-block;
+        border: 1px solid rgba(0, 0, 0, 0.40);
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 4px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        font-size: 12px;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
+        margin-bottom: 25px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-ink:hover {
+        background: #000;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* Bảng phong cách tối giản (Floating Rows) */
+    .glass-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .glass-table thead th {
+        border: none;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0 20px;
+    }
+
+    .glass-table tbody tr {
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .glass-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.85);
+        transform: scale(1.01);
+    }
+
+    .glass-table td {
+        padding: 16px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    /* Bo góc cho từng hàng */
+    .glass-table td:first-child { border-radius: 12px 0 0 12px; }
+    .glass-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Badge trạng thái */
+    .badge-status {
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .bg-active { background: #e8f5e9; color: #2e7d32; }
+    .bg-hidden { background: #f5f5f5; color: #757575; }
+
+    /* Thao tác nút bấm nhỏ */
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-weight: 800;
+        font-size: 11px;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .btn-edit-glass { background: #fff; color: var(--ink); }
+    .btn-toggle-glass { background: var(--ink); color: #fff; border: none; }
+
+    .action-btn:hover {
+        opacity: 0.8;
+        transform: translateY(-1px);
+    }
+</style>
+
+<div class="admin-list-wrap">
+    <h2 class="admin-title">Product Catalog</h2>
+
+    <div class="glass-panel">
+        <a asp-action="Create" class="btn-create-ink">
+            ➕ Add New Product
+        </a>
+
+        <div class="table-responsive">
+            <table class="glass-table">
+                <thead>
+                    <tr>
+                        <th>Thông tin sản phẩm</th>
+                        <th>Đơn giá</th>
+                        <th>Thứ tự</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
                         <tr>
-                            <th>Tên</th>
-                            <th>Giá</th>
-                            <th>Thứ tự</th>
-                            <th>Trạng thái</th>
-                            <th style="width: 140px;">Thao tác</th>
+                            <td>
+                                <div style="font-weight: 700;">@item.Name</div>
+                                <div style="font-size: 11px; opacity: 0.4;">ID: #@item.Id</div>
+                            </td>
+                            <td style="font-weight: 700;">@item.PriceText</td>
+                            <td style="opacity: 0.6;">@item.SortOrder</td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge-status bg-active">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status bg-hidden">Hidden</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="action-btn btn-edit-glass me-1">
+                                    EDIT
+                                </a>
+
+                                <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
+                                    <button type="submit" class="action-btn btn-toggle-glass">
+                                        @(item.IsActive ? "HIDE" : "SHOW")
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@item.Name</td>
-                                <td>@item.PriceText</td>
-                                <td>@item.SortOrder</td>
-                                <td>
-                                    @if (item.IsActive)
-                                    {
-                                        <span class="badge bg-success">Đang bán</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-secondary">Đã ẩn</span>
-                                    }
-                                </td>
-                                <td>
-                                    <a asp-action="Edit"
-                                       asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-primary me-1">
-                                        ✏️
-                                    </a>
-
-                                    <form asp-action="ToggleActive"
-                                          asp-route-id="@item.Id"
-                                          method="post"
-                                          class="d-inline">
-                                        <button type="submit"
-                                                class="btn btn-sm btn-warning">
-                                            @(item.IsActive ? "Ẩn" : "Hiện")
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
+
+@* Sparkle SVG trang trí đồng bộ trang chủ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .1; pointer-events: none;">
+    <path fill="var(--ink)" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>

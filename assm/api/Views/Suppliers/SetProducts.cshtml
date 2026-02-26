@@ -1,32 +1,181 @@
 ﻿@model lab4.Models.ViewModels.AssignProductsVM
 
-<h2>Gán sản phẩm cho: <b>@Model.SupplierName</b></h2>
+@{
+    ViewData["Title"] = "Gán sản phẩm cho nhà cung cấp";
+}
 
-<form asp-action="SetProducts" method="post">
-    <input type="hidden" asp-for="SupplierId" />
+<style>
+    /* Container chính phong cách kính mờ */
+    .assign-products-wrap {
+        width: min(800px, calc(100% - 40px));
+        margin: 40px auto;
+        padding: 35px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 1;
+    }
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Chọn</th>
-                <th>Tên sản phẩm</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Products.Count; i++)
-            {
-                <tr>
-                    <td>
-                        <input asp-for="Products[i].Selected" />
-                        <input type="hidden" asp-for="Products[i].ProductId" />
-                        <input type="hidden" asp-for="Products[i].Name" />
-                    </td>
-                    <td>@Model.Products[i].Name</td>
+    /* Tiêu đề chữ rỗng phối hợp với tên NCC đậm */
+    .glass-title {
+        font-weight: 900;
+        letter-spacing: .05em;
+        font-size: 26px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.2px rgba(0,0,0,.35);
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .supplier-name-highlight {
+        color: var(--ink);
+        -webkit-text-stroke: 0;
+        display: block;
+        font-size: 32px;
+        margin-top: 5px;
+    }
+
+    /* Bảng danh sách sản phẩm (Floating Rows) */
+    .glass-selection-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+        margin-bottom: 30px;
+    }
+
+    .glass-selection-table tr {
+        background: rgba(255, 255, 255, 0.4);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .glass-selection-table tr:hover {
+        background: rgba(255, 255, 255, 0.8);
+        transform: scale(1.01);
+    }
+
+    .glass-selection-table td {
+        padding: 14px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    .glass-selection-table td:first-child { border-radius: 12px 0 0 12px; width: 60px; }
+    .glass-selection-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Tùy chỉnh Checkbox kiểu Ink */
+    .ink-checkbox {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: var(--ink);
+        mix-blend-mode: multiply;
+    }
+
+    /* Nút bấm đồng bộ */
+    .btn-group-modern {
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn-save-ink {
+        flex: 2;
+        background: var(--ink, #2c2c2c);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .btn-save-ink:hover {
+        background: #000;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    }
+
+    .btn-back-glass {
+        flex: 1;
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--ink);
+        text-decoration: none;
+        text-align: center;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: 0.2s;
+    }
+
+    .btn-back-glass:hover {
+        background: rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="assign-products-wrap">
+    <h2 class="glass-title">
+        Assign Products for:
+        <span class="supplier-name-highlight">@Model.SupplierName</span>
+    </h2>
+
+    <form asp-action="SetProducts" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SupplierId" />
+
+        
+
+        <table class="glass-selection-table">
+            <thead>
+                <tr style="background: transparent;">
+                    <th style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: rgba(0,0,0,0.4); padding: 0 20px;">Chọn</th>
+                    <th style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: rgba(0,0,0,0.4);">Tên sản phẩm</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Products.Count; i++)
+                {
+                    <tr onclick="this.querySelector('.ink-checkbox').click()">
+                        <td class="text-center">
+                            <input asp-for="Products[i].Selected" class="ink-checkbox" onclick="event.stopPropagation()" />
+                            <input type="hidden" asp-for="Products[i].ProductId" />
+                            <input type="hidden" asp-for="Products[i].Name" />
+                        </td>
+                        <td>@Model.Products[i].Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-    <button class="btn btn-primary">💾 Lưu</button>
-    <a asp-action="Index" class="btn btn-secondary">⬅ Quay lại</a>
-</form>
+        <div class="btn-group-modern">
+            <button type="submit" class="btn-save-ink">💾 Lưu thay đổi</button>
+            <a asp-action="Index" class="btn-back-glass">⬅ Quay lại</a>
+        </div>
+    </form>
+</div>
+
+@* Sparkle SVG trang trí đồng bộ trang chủ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .1; pointer-events: none;">
+    <path fill="var(--ink)" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>
+
+<script>
+    // Cho phép click vào bất kỳ đâu trên hàng để toggle checkbox
+    document.querySelectorAll('.glass-selection-table tr').forEach(row => {
+        row.addEventListener('click', function(e) {
+            const cb = this.querySelector('.ink-checkbox');
+            if (e.target !== cb) {
+                cb.checked = !cb.checked;
+            }
+        });
+    });
+</script>

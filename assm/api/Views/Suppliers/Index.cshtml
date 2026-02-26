@@ -1,35 +1,179 @@
 ﻿@model IEnumerable<lab4.Models.Supplier>
 
-<h2>Nhà cung cấp</h2>
+@{
+    ViewData["Title"] = "Quản lý đối tác";
+}
 
-<a asp-action="Create" class="btn btn-primary mb-3">+ Thêm NCC</a>
+<style>
+    /* Container chính phong cách Glassmorphism */
+    .admin-list-wrap {
+        width: min(1200px, calc(100% - 64px));
+        margin: 22px auto 0;
+        position: relative;
+        z-index: 1;
+    }
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Code</th>
-            <th>Tên</th>
-            <th>Email</th>
-            <th>Điện thoại</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model)
-        {
-            <tr>
-                <td>@s.Code</td>
-                <td>@s.Name</td>
-                <td>@s.Email</td>
-                <td>@s.Phone</td>
-                <td>
-                    <a asp-action="SetProducts"
-                       asp-route-id="@s.Id"
-                       class="btn btn-sm btn-success">
-                        Set sản phẩm
-                    </a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    .glass-panel {
+        padding: 32px;
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Tiêu đề chữ rỗng theo style WELCOME */
+    .admin-title {
+        text-align: left;
+        font-weight: 900;
+        letter-spacing: .1em;
+        font-size: 32px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.35);
+        margin-bottom: 25px;
+    }
+
+    /* Nút thêm mới theo style btn-explore */
+    .btn-create-ink {
+        display: inline-block;
+        border: 1px solid rgba(0, 0, 0, 0.40);
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 4px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        font-size: 12px;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.15);
+        margin-bottom: 25px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-create-ink:hover {
+        background: #000;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    /* Bảng phong cách hàng nổi (Floating Rows) */
+    .glass-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .glass-table thead th {
+        border: none;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0 20px;
+    }
+
+    .glass-table tbody tr {
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .glass-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.85);
+        transform: translateY(-2px);
+    }
+
+    .glass-table td {
+        padding: 16px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    /* Bo góc cho hàng */
+    .glass-table td:first-child { border-radius: 12px 0 0 12px; }
+    .glass-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Nút Set sản phẩm */
+    .btn-set-ink {
+        display: inline-block;
+        background: var(--ink, #2c2c2c);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 11px;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+
+    .btn-set-ink:hover {
+        background: #000;
+        color: #fff;
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    }
+
+    .contact-info {
+        font-size: 13px;
+        opacity: 0.7;
+    }
+</style>
+
+<div class="admin-list-wrap">
+    <h2 class="admin-title">Suppliers</h2>
+
+    <div class="glass-panel">
+        <a asp-action="Create" class="btn-create-ink">
+            ➕ Thêm Nhà Cung Cấp
+        </a>
+
+        
+
+        <div class="table-responsive">
+            <table class="glass-table">
+                <thead>
+                    <tr>
+                        <th width="120">Mã Code</th>
+                        <th>Nhà cung cấp</th>
+                        <th>Liên hệ</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>
+                                <code style="color: var(--ink); font-weight: 800;">@s.Code</code>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700;">@s.Name</div>
+                            </td>
+                            <td>
+                                <div class="contact-info">📧 @s.Email</div>
+                                <div class="contact-info">📞 @s.Phone</div>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="SetProducts"
+                                   asp-route-id="@s.Id"
+                                   class="btn-set-ink">
+                                    Set sản phẩm
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Sparkle SVG trang trí đồng bộ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .1; pointer-events: none;">
+    <path fill="var(--ink)" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>

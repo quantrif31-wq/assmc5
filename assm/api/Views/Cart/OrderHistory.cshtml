@@ -6,43 +6,113 @@
 }
 
 <style>
+    /* Container chính kế thừa phong cách từ Vue Frame */
     .order-history-wrap {
-        max-width: 900px;
+        max-width: 1000px;
         margin: 40px auto;
-        padding: 28px 32px;
-        background: rgba(255,255,255,.75);
-        border-radius: 14px;
-        box-shadow: 0 16px 30px rgba(0,0,0,.12);
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        border-radius: 18px;
+        box-shadow: 0 26px 60px rgba(0,0,0,.08);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-        .order-history-wrap h2 {
-            margin-bottom: 20px;
-            font-weight: 800;
-        }
-
-    .order-table th {
-        background: rgba(0,0,0,.05);
+    .order-history-wrap h2 {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: #222;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
+    /* Custom Table: Floating Row Style */
+    .custom-order-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 12px;
+    }
+
+    .custom-order-table thead th {
+        border: none;
+        color: #888;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 0 20px 5px;
+    }
+
+    .custom-order-table tbody tr {
+        background: #fff;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .custom-order-table tbody tr:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+
+    .custom-order-table td {
+        padding: 18px 20px;
+        border: none;
+        vertical-align: middle;
+        font-size: 0.95rem;
+        border-top: 1px solid #f8f8f8;
+        border-bottom: 1px solid #f8f8f8;
+    }
+
+    .custom-order-table td:first-child { 
+        border-left: 1px solid #f8f8f8;
+        border-radius: 12px 0 0 12px; 
+        font-weight: 700;
+    }
+
+    .custom-order-table td:last-child { 
+        border-right: 1px solid #f8f8f8;
+        border-radius: 0 12px 12px 0; 
+    }
+
+    /* Status Badges tinh chỉnh */
     .badge {
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
     }
 
-    .badge-new {
-        background: #e3f2fd;
-        color: #1565c0;
+    .badge-new { background: #eef2ff; color: #4338ca; }      /* Blueish */
+    .badge-shipping { background: #fff7ed; color: #c2410c; } /* Orange */
+    .badge-done { background: #f0fdf4; color: #15803d; }     /* Green */
+    .badge-cancel { background: #fef2f2; color: #b91c1c; }   /* Red */
+
+    /* Nút xem chi tiết */
+    .btn-view {
+        color: #000;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #f3f4f6;
+        transition: 0.2s;
     }
 
-    .badge-done {
-        background: #e8f5e9;
-        color: #2e7d32;
+    .btn-view:hover {
+        background: #000;
+        color: #fff;
     }
 
-    .badge-cancel {
-        background: #ffebee;
-        color: #c62828;
+    /* Cảnh báo khách vãng lai */
+    .guest-alert {
+        background: #fff9db;
+        border: 1px solid #ffec99;
+        color: #856404;
+        border-radius: 12px;
+        padding: 15px 20px;
+        font-size: 0.9rem;
     }
 </style>
 
@@ -50,30 +120,35 @@
 
     <h2>🧾 Lịch sử mua hàng</h2>
 
-    @* ⚠️ CẢNH BÁO CHO KHÁCH VÃNG LAI *@
     @if (!isLoggedIn)
     {
-        <div class="alert alert-warning mb-3">
-            ⚠️ Bạn đang xem đơn hàng với tư cách <b>khách vãng lai</b>.<br />
-            Đơn hàng chỉ truy cập được trên <b>trình duyệt hiện tại</b>.
-            Nếu xoá cookie hoặc đổi thiết bị, bạn sẽ <b>mất quyền truy cập</b>.
+        <div class="guest-alert mb-4">
+            <div class="d-flex align-items-center">
+                <span class="me-2" style="font-size: 1.2rem;">⚠️</span>
+                <span>
+                    Bạn đang xem với tư cách <b>Khách vãng lai</b>. Đơn hàng sẽ bị mất nếu bạn xóa Cookie trình duyệt.
+                </span>
+            </div>
         </div>
     }
 
     @if (!Model.Any())
     {
-        <p>Bạn chưa có đơn hàng nào.</p>
+        <div class="text-center py-5">
+            <p class="text-muted">Bạn chưa có đơn hàng nào.</p>
+            <a href="/" class="btn btn-dark btn-sm rounded-pill px-4">Mua sắm ngay</a>
+        </div>
     }
     else
     {
-        <table class="table order-table">
+        <table class="custom-order-table">
             <thead>
                 <tr>
                     <th>Mã đơn</th>
-                    <th>Ngày</th>
+                    <th>Ngày đặt</th>
                     <th>Thanh toán</th>
                     <th>Trạng thái</th>
-                    <th class="text-end">Tổng tiền</th>
+                    <th class="text-end">Tổng cộng</th>
                     <th></th>
                 </tr>
             </thead>
@@ -82,42 +157,34 @@
                 {
                     <tr>
                         <td>#@o.Id</td>
-                        <td>@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@o.PaymentMethod</td>
+                        <td class="text-muted">@o.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                        <td><small class="text-uppercase fw-bold text-secondary">@o.PaymentMethod</small></td>
                         <td>
                             @switch (o.Status)
                             {
                                 case "Pending":
                                     <span class="badge badge-new">Chờ xác nhận</span>
                                     break;
-
-                                case "Confirmed":
-                                    <span class="badge badge-new">Đã xác nhận</span>
-                                    break;
-
                                 case "Shipping":
-                                    <span class="badge badge-new">Đang giao</span>
+                                    <span class="badge badge-shipping">Đang giao</span>
                                     break;
-
                                 case "Completed":
                                     <span class="badge badge-done">Hoàn tất</span>
                                     break;
-
                                 case "Cancelled":
-                                    <span class="badge badge-cancel">Huỷ</span>
+                                    <span class="badge badge-cancel">Đã hủy</span>
                                     break;
-
                                 default:
-                                    <span class="badge badge-cancel">Không xác định</span>
+                                    <span class="badge bg-light text-dark">@o.Status</span>
                                     break;
                             }
                         </td>
-                        <td class="text-end">
+                        <td class="text-end fw-bold">
                             @string.Format("{0:N0} ₫", o.Total)
                         </td>
                         <td class="text-end">
-                            <a asp-action="Success" asp-route-id="@o.Id">
-                                Xem
+                            <a asp-action="Success" asp-route-id="@o.Id" class="btn-view">
+                                Chi tiết
                             </a>
                         </td>
                     </tr>
@@ -125,5 +192,4 @@
             </tbody>
         </table>
     }
-
 </div>

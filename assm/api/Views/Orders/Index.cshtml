@@ -1,35 +1,173 @@
 ﻿@model IEnumerable<Order>
 
-<h2>Quản lý đơn hàng</h2>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+}
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Mã đơn</th>
-            <th>Khách hàng</th>
-            <th>Ngày tạo</th>
-            <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var o in Model)
-        {
+<style>
+    /* Container chính phong cách Glassmorphism */
+    .order-admin-wrap {
+        width: min(1200px, calc(100% - 40px));
+        margin: 40px auto;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 1;
+    }
+
+    .order-admin-wrap h2 {
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: var(--ink, #2c2c2c);
+        margin-bottom: 25px;
+    }
+
+    /* Tùy chỉnh bảng phong cách hàng nổi (Floating Rows) */
+    .glass-order-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px; /* Tạo khoảng cách giữa các hàng */
+    }
+
+    .glass-order-table thead th {
+        border: none;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 10px 20px;
+    }
+
+    .glass-order-table tbody tr {
+        background: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+    }
+
+    .glass-order-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .glass-order-table td {
+        padding: 16px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    /* Bo góc cho từng hàng */
+    .glass-order-table td:first-child { border-radius: 12px 0 0 12px; }
+    .glass-order-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Badge trạng thái phong cách kính */
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    /* Phân loại màu trạng thái nhẹ nhàng (Pastel) */
+    .status-pending { background: #fff9db; color: #f08c00; }
+    .status-confirmed { background: #e7f5ff; color: #1971c2; }
+    .status-shipping { background: #f3f0ff; color: #6741d9; }
+    .status-completed { background: #ebfbee; color: #2b8a3e; }
+    .status-cancelled { background: #fff5f5; color: #c92a2a; }
+
+    /* Nút bấm tinh tế */
+    .btn-details {
+        background: var(--ink, #2c2c2c);
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .btn-details:hover {
+        background: #000;
+        transform: scale(1.05);
+        color: #fff;
+    }
+
+    .customer-name {
+        font-weight: 700;
+        display: block;
+    }
+
+    .order-id {
+        font-size: 11px;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="order-admin-wrap">
+    <h2>📦 Quản lý đơn hàng</h2>
+
+    [Image of an e-commerce order management interface with status tracking cards]
+
+    <table class="glass-order-table">
+        <thead>
             <tr>
-                <td>#@o.Id</td>
-                <td>@o.FullName</td>
-                <td>@o.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@o.Total.ToString("N0") đ</td>
-                <td>
-                    <span class="badge bg-info">@o.Status</span>
-                </td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@o.Id" class="btn btn-sm btn-primary">
-                        Xem
-                    </a>
-                </td>
+                <th>Mã đơn</th>
+                <th>Khách hàng</th>
+                <th>Ngày tạo</th>
+                <th>Tổng tiền</th>
+                <th>Trạng thái</th>
+                <th class="text-end">Thao tác</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                // Logic gán class màu sắc dựa trên trạng thái
+                var statusClass = o.Status switch
+                {
+                    "Pending" => "status-pending",
+                    "Confirmed" => "status-confirmed",
+                    "Shipping" => "status-shipping",
+                    "Completed" => "status-completed",
+                    "Cancelled" => "status-cancelled",
+                    _ => ""
+                };
+
+                <tr>
+                    <td>
+                        <span class="order-id">#@o.Id</span>
+                    </td>
+                    <td>
+                        <span class="customer-name">@o.FullName</span>
+                    </td>
+                    <td style="font-size: 13px; opacity: 0.7;">
+                        @o.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                    </td>
+                    <td style="font-weight: 700;">
+                        @o.Total.ToString("N0") đ
+                    </td>
+                    <td>
+                        <span class="status-badge @statusClass">
+                            @o.Status
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@o.Id" class="btn-details">
+                            Chi tiết
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

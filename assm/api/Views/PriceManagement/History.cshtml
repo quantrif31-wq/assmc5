@@ -6,70 +6,191 @@
     var product = ViewBag.Product as Product;
 }
 
-<h2 class="mb-3">📊 Lịch sử giá</h2>
+<style>
+    /* Container phong cách kính mờ đồng bộ với trang Home */
+    .glass-history-wrap {
+        width: min(1200px, calc(100% - 40px));
+        margin: 40px auto;
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 1;
+    }
 
-@if (product != null)
-{
-    <div class="alert alert-info">
-        <strong>Sản phẩm:</strong> @product.Name <br />
-        <strong>Giá hiện tại:</strong> @product.PriceVnd.ToString("N0") VND
-    </div>
-}
+    .glass-history-wrap h2 {
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: var(--ink, #2c2c2c);
+        margin-bottom: 25px;
+    }
 
-<table class="table table-bordered table-striped">
-    <thead class="table-dark">
-        <tr>
-            <th>#</th>
-            <th>Loại giá</th>
-            <th>Giá</th>
-            <th>Hiệu lực từ</th>
-            <th>Lý do</th>
-            <th>Tham chiếu</th>
-            <th>Người thay đổi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            int i = 1;
-            foreach (var item in Model)
+    /* Thẻ thông tin sản phẩm phong cách Glass */
+    .glass-alert-info {
+        background: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 30px;
+        color: var(--ink);
+    }
+
+    /* Bảng lịch sử phong cách hàng nổi (Floating Rows) */
+    .glass-history-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .glass-history-table thead th {
+        border: none;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 10px 20px;
+    }
+
+    .glass-history-table tbody tr {
+        background: rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+    }
+
+    .glass-history-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .glass-history-table td {
+        padding: 16px 20px;
+        border: none;
+        vertical-align: middle;
+        font-weight: 600;
+        color: var(--ink);
+    }
+
+    /* Bo góc cho hàng */
+    .glass-history-table td:first-child { border-radius: 12px 0 0 12px; }
+    .glass-history-table td:last-child { border-radius: 0 12px 12px 0; }
+
+    /* Badge phong cách kính */
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .badge-sale { background: #ebfbee; color: #2b8a3e; }
+    .badge-purchase { background: #fff9db; color: #f08c00; }
+
+    .btn-glass-back {
+        display: inline-block;
+        margin-top: 25px;
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--ink);
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 700;
+        transition: 0.2s;
+    }
+
+    .btn-glass-back:hover {
+        background: rgba(0, 0, 0, 0.1);
+        color: #000;
+    }
+
+    .text-muted-glass {
+        color: rgba(0,0,0,0.4);
+        font-size: 13px;
+    }
+</style>
+
+<div class="glass-history-wrap">
+    <h2>📊 Lịch sử biến động giá</h2>
+
+    @if (product != null)
+    {
+        <div class="glass-alert-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <span class="text-muted-glass text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 1px;">Sản phẩm</span>
+                    <h4 class="mb-0 fw-bold">@product.Name</h4>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <span class="text-muted-glass text-uppercase fw-bold" style="font-size: 10px; letter-spacing: 1px;">Giá hiện tại</span>
+                    <h4 class="mb-0 fw-bold" style="color: var(--ink);">@product.PriceVnd.ToString("N0") VND</h4>
+                </div>
+            </div>
+        </div>
+    }
+
+    
+
+    <table class="glass-history-table">
+        <thead>
+            <tr>
+                <th width="50">#</th>
+                <th>Loại giá</th>
+                <th class="text-end">Giá trị</th>
+                <th>Thời điểm</th>
+                <th>Lý do & Tham chiếu</th>
+                <th>Người thực hiện</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                int i = 1;
+                foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="text-muted-glass">@i</td>
+                        <td>
+                            @if (item.Type == PriceType.SALE)
+                            {
+                                <span class="status-badge badge-sale">Giá bán</span>
+                            }
+                            else
+                            {
+                                <span class="status-badge badge-purchase">Giá nhập</span>
+                            }
+                        </td>
+                        <td class="text-end fw-bold">
+                            @item.Price.ToString("N0") VND
+                        </td>
+                        <td class="text-muted-glass" style="font-size: 12px;">
+                            @item.EffectiveFrom.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                        </td>
+                        <td>
+                            <div class="fw-bold">@item.Reason</div>
+                            <div class="text-muted-glass" style="font-size: 11px;">Ref: @item.ReferenceCode</div>
+                        </td>
+                        <td class="fw-bold">@item.ChangedBy</td>
+                    </tr>
+                    i++;
+                }
+            }
+            else
             {
                 <tr>
-                    <td>@i</td>
-                    <td>
-                        @if (item.Type == PriceType.SALE)
-                        {
-                            <span class="badge bg-success">Giá bán</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-warning text-dark">Giá nhập</span>
-                        }
+                    <td colspan="6" class="text-center py-5 text-muted-glass">
+                        Chưa có dữ liệu lịch sử giá cho sản phẩm này.
                     </td>
-                    <td class="text-end">
-                        @item.Price.ToString("N0") VND
-                    </td>
-                    <td>
-                        @item.EffectiveFrom.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                    </td>
-                    <td>@item.Reason</td>
-                    <td>@item.ReferenceCode</td>
-                    <td>@item.ChangedBy</td>
                 </tr>
-                i++;
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="7" class="text-center text-muted">
-                    Chưa có lịch sử giá
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
-<a asp-action="Index" class="btn btn-secondary">
-    ⬅ Quay lại danh sách
-</a>
+    <a asp-action="Index" class="btn-glass-back">
+        ⬅ Quay lại danh sách
+    </a>
+</div>
