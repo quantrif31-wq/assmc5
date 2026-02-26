@@ -138,20 +138,104 @@
         <span class="status-badge bg-warning text-dark">@Model.Status</span>
     </div>
 
-    <div class="customer-info-grid">
-        <div class="info-item">
-            <span class="info-label">Khách hàng</span>
-            <span class="info-value">@Model.FullName</span>
-        </div>
-        <div class="info-item">
-            <span class="info-label">Điện thoại</span>
-            <span class="info-value">@Model.Phone</span>
-        </div>
-        <div class="info-item" style="grid-column: span 2;">
-            <span class="info-label">Địa chỉ giao hàng</span>
-            <span class="info-value">@Model.Address</span>
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger mb-4">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success mb-4">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 shadow-sm border-0">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-lines-fill"></i> Khách Hàng</h5>
+            <p class="mb-1"><strong>Tên:</strong> @Model.FullName</p>
+            <p class="mb-1"><strong>SĐT:</strong> @Model.Phone</p>
+            <p class="mb-1"><strong>Email:</strong> @Model.Email</p>
+            <p class="mb-1"><strong>Địa chỉ:</strong> @Model.Address, @Model.City</p>
+            <p class="mb-0"><strong>Ghi chú:</strong> @Model.Note</p>
         </div>
     </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 shadow-sm border-0">
+            <h5 class="fw-bold mb-3"><i class="bi bi-info-circle"></i> Đơn Hàng</h5>
+            <p class="mb-1"><strong>Mã đơn:</strong> #@Model.Id</p>
+            <p class="mb-1"><strong>Ngày đặt:</strong> @Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</p>
+            <p class="mb-1"><strong>Thanh toán:</strong> @Model.PaymentMethod</p>
+            
+            <p class="mb-1">
+                <strong>VNPAY Ref:</strong> 
+                <span class="text-muted">@(string.IsNullOrEmpty(Model.VnpTxnRef) ? "N/A" : Model.VnpTxnRef)</span>
+            </p>
+            <p class="mb-0">
+                <strong>VNPAY Mã GD:</strong> 
+                <span class="text-muted">@(string.IsNullOrEmpty(Model.VnpTransactionNo) ? "N/A" : Model.VnpTransactionNo)</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 mb-3 shadow-sm border-0">
+            <h5 class="fw-bold mb-3"><i class="bi bi-gear"></i> Trạng Thái</h5>
+            
+            @if (User.IsInRole("StoreManager") || User.IsInRole("KitchenStaff"))
+            {
+                <form asp-action="UpdateStatus" method="post" class="d-flex flex-column gap-2">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <select name="status" class="form-select border-2" required>
+                        <!-- Trạng thái hiện tại luôn hiển thị, bị disable để nhìn -->
+                        @if (Model.Status == "Pending")
+                        {
+                            <option value="Pending" selected disabled>Đang chờ (Pending)</option>
+                            <option value="Preparing"> Chuẩn bị & Nấu (Preparing)</option>
+                            <option value="Cancelled"> Hủy đơn hàng (Cancelled)</option>
+                        }
+                        else if (Model.Status == "Preparing")
+                        {
+                            <option value="Preparing" selected disabled>Đang chuẩn bị (Preparing)</option>
+                            <option value="Delivering"> Bắt đầu giao (Delivering)</option>
+                        }
+                        else if (Model.Status == "Delivering")
+                        {
+                            <option value="Delivering" selected disabled>Đang giao (Delivering)</option>
+                            <option value="Done"> Hoàn thành (Done)</option>
+                        }
+                        else if (Model.Status == "Done")
+                        {
+                            <option value="Done" selected disabled>Đã hoàn thành</option>
+                        }
+                        else if (Model.Status == "Cancelled")
+                        {
+                            <option value="Cancelled" selected disabled>Đã hủy</option>
+                        }
+                    </select>
+
+                    <button type="submit" class="btn btn-primary fw-bold" 
+                            @(Model.Status == "Done" || Model.Status == "Cancelled" ? "disabled" : "")>
+                        Cập Nhật
+                    </button>
+                    <small class="text-muted mt-1">*Chỉ có thể đổi sang bước tiếp theo, không thể lùi lại.</small>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-secondary mb-0">
+                    <span class="fw-bold d-block mb-1">Trạng thái hiện tại:</span>
+                    <span class="badge bg-primary fs-6">@Model.Status</span>
+                    <small class="d-block text-muted mt-2">*Tài khoản không có quyền cập nhật trạng thái.</small>
+                </div>
+            }
+        </div>
+    </div>
+</div>
 
     <h4 class="info-label" style="margin-left: 5px; font-size: 14px;">🛒 Chi tiết sản phẩm</h4>
     <table class="glass-table">
@@ -176,20 +260,4 @@
         </tbody>
     </table>
 
-    <div class="update-status-box">
-        <h4 class="info-label" style="margin-bottom: 15px;">⚙️ Quản lý trạng thái đơn hàng</h4>
-        <form asp-action="UpdateStatus" method="post" class="d-flex gap-3 align-items-center">
-            <input type="hidden" name="id" value="@Model.Id" />
-
-            <select name="status" class="form-select glass-select w-50">
-                <option value="Pending" selected="@("Pending" == Model.Status)">Pending (Chờ xử lý)</option>
-                <option value="Confirmed" selected="@("Confirmed" == Model.Status)">Confirmed (Đã xác nhận)</option>
-                <option value="Shipping" selected="@("Shipping" == Model.Status)">Shipping (Đang giao)</option>
-                <option value="Completed" selected="@("Completed" == Model.Status)">Completed (Hoàn tất)</option>
-                <option value="Cancelled" selected="@("Cancelled" == Model.Status)">Cancelled (Đã hủy)</option>
-            </select>
-
-            <button type="submit" class="btn-update">Cập nhật đơn</button>
-        </form>
-    </div>
 </div>

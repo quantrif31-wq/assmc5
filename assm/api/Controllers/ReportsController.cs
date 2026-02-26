@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace lab4.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "StoreManager,Accountant")]
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -30,7 +30,21 @@ namespace lab4.Controllers
             var totalOrders = _context.Orders.Count();
             var completedCount = completedOrders.Count();
 
-            var totalInventory = _context.Inventories.Sum(i => i.Quantity);
+            // ===== Inventory (safe — bảng có thể chưa tồn tại) =====
+            int totalInventory = 0;
+            object inventories = new List<object>();
+            try
+            {
+                totalInventory = _context.Inventories.Sum(i => i.Quantity);
+                inventories = _context.Inventories
+                    .Select(i => new
+                    {
+                        product = i.Product.Name,
+                        quantity = i.Quantity
+                    })
+                    .ToList();
+            }
+            catch { /* Inventories table chưa tồn tại */ }
 
             // ===== Revenue by day (CHỈ ĐƠN HOÀN TẤT) =====
             var revenueByDay = completedOrders
@@ -62,14 +76,15 @@ namespace lab4.Controllers
                 .Take(5)
                 .ToList();
 
-            // ===== Inventory =====
-            var inventories = _context.Inventories
-                .Select(i => new
-                {
-                    product = i.Product.Name,
-                    quantity = i.Quantity
-                })
+            // ===== Orders by status =====
+            var ordersByStatus = _context.Orders
+                .GroupBy(o => o.Status)
+                .Select(g => new { status = g.Key, count = g.Count() })
                 .ToList();
+
+            var completionRate = totalOrders > 0
+                ? Math.Round((decimal)completedCount / totalOrders * 100, 1)
+                : 0m;
 
             // ===== ViewBag =====
             ViewBag.TotalRevenue = totalRevenue;
@@ -77,10 +92,12 @@ namespace lab4.Controllers
             ViewBag.TotalOrders = totalOrders;
             ViewBag.CompletedOrders = completedCount;
             ViewBag.TotalInventory = totalInventory;
+            ViewBag.CompletionRate = completionRate;
 
             ViewBag.RevenueByDay = revenueByDay;
             ViewBag.TopProducts = topProducts;
             ViewBag.Inventories = inventories;
+            ViewBag.OrdersByStatus = ordersByStatus;
 
             return View();
         }

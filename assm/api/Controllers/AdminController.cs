@@ -7,7 +7,7 @@ namespace lab4.Controllers
 {
    
 
-    [Authorize] // bắt buộc login
+    [Authorize(Roles = "StoreManager")] // bắt buộc login & quyền StoreManager
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

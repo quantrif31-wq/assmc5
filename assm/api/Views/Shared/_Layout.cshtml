@@ -68,6 +68,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: relative;
+            z-index: 100;
         }
 
         .avatar {
@@ -133,6 +135,8 @@
             padding: 12px 0;
             border-bottom: 1px solid rgba(0,0,0,.18);
             flex-wrap: wrap;
+            position: relative;
+            z-index: 100;
         }
 
             .menu a,
@@ -263,13 +267,16 @@
                 }
 
 
-                <!-- QUẢN LÝ – CÓ ÍT NHẤT 1 QUYỀN -->
+                <!-- QUẢN LÝ – CÓ ÍT NHẤT 1 QUYỀN (Claims hoặc Roles) -->
                 @if (User.Identity != null && User.Identity.IsAuthenticated &&
                                 (
                                 User.HasClaim("Permission", "Admin.Access") ||
                                 User.HasClaim("Permission", "Product.Create") ||
                                 User.HasClaim("Permission", "Order.Manage") ||
-                                User.HasClaim("Permission", "Inventory.Manage")
+                                User.HasClaim("Permission", "Inventory.Manage") ||
+                                User.IsInRole("StoreManager") ||
+                                User.IsInRole("Accountant") ||
+                                User.IsInRole("KitchenStaff")
                                 ))
                 {
                     <div class="dropdown d-inline">
@@ -277,31 +284,42 @@
 
                         <ul class="dropdown-menu dropdown-menu-end shadow">
 
-                            @* ADMIN *@
-                            @if (User.HasClaim("Permission", "Admin.Access"))
+                            @* ===== BÁO CÁO & ADMIN (StoreManager + Accountant + Claims Admin.Access) ===== *@
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager") || User.IsInRole("Accountant"))
                             {
-                                <li><a class="dropdown-item" href="/Reports/Index">📊 Báo cáo</a></li>
+                                <li><a class="dropdown-item" href="/Reports/Index">📊 Báo cáo doanh thu</a></li>
+                            }
+
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager"))
+                            {
                                 <li><a class="dropdown-item" href="/Suppliers/Index">🏭 Nhà cung cấp</a></li>
                                 <li><a class="dropdown-item" href="/Admin/Index">👑 Quản trị hệ thống</a></li>
                             }
 
-                            @* PRODUCT *@
-                            @if (User.HasClaim("Permission", "Product.Create"))
+                            @* ===== SẢN PHẨM (StoreManager + Claims Product.Create) ===== *@
+                            @if (User.HasClaim("Permission", "Product.Create") || User.IsInRole("StoreManager"))
                             {
-                                <li><a class="dropdown-item" href="/Product/QL_SP">📦 Sản phẩm</a></li>
-                                <li><a class="dropdown-item" href="/PriceManagement/Index">💲 Giá</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="/Product/QL_SP">📦 Quản lý sản phẩm</a></li>
+                                <li><a class="dropdown-item" href="/PriceManagement/Index">💲 Quản lý giá</a></li>
                             }
 
-                            @* ORDER *@
-                            @if (User.HasClaim("Permission", "Order.Manage"))
+                            @* ===== ĐƠN HÀNG (StoreManager + Accountant + KitchenStaff + Claims Order.Manage) ===== *@
+                            @if (User.HasClaim("Permission", "Order.Manage") || User.IsInRole("StoreManager") || User.IsInRole("Accountant") || User.IsInRole("KitchenStaff"))
                             {
-                                <li><a class="dropdown-item" href="/Orders/Index">📝 Đơn bán</a></li>
-                                <li><a class="dropdown-item" href="/PurchaseOrders/Index">🧾 Đơn mua</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="/Orders/Index">📝 Đơn hàng</a></li>
                             }
 
-                            @* INVENTORY *@
-                            @if (User.HasClaim("Permission", "Inventory.Manage"))
+                            @if (User.HasClaim("Permission", "Order.Manage") || User.IsInRole("StoreManager"))
                             {
+                                <li><a class="dropdown-item" href="/PurchaseOrders/Index">🧾 Đơn mua hàng</a></li>
+                            }
+
+                            @* ===== TỒN KHO (StoreManager + Claims Inventory.Manage) ===== *@
+                            @if (User.HasClaim("Permission", "Inventory.Manage") || User.IsInRole("StoreManager"))
+                            {
+                                <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/Inventory/Index">📊 Tồn kho</a></li>
                                 <li><a class="dropdown-item" href="/Inventory/Logs">📜 Lịch sử kho</a></li>
                             }
