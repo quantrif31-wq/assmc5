@@ -611,59 +611,66 @@ namespace Lab4.Controllers
 
         // ✅ Endpoint AJAX: thêm vào giỏ, KHÔNG redirect, trả JSON
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> AddAjax(int productId, int quantity = 1)
         {
-            if (quantity < 1) quantity = 1;
-
-            var product = await _context.Products
-                .Include(p => p.Inventory)
-                .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
-
-            if (product == null)
-                return NotFound(new { ok = false, message = "Sản phẩm không tồn tại" });
-
-            if (product.Inventory == null || product.Inventory.Quantity <= 0)
-                return Json(new { ok = false, message = "Sản phẩm đã hết hàng" });
-
-            var cart = await GetOrCreateCartAsync();
-
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-            var currentQty = item?.Quantity ?? 0;
-
-            // ❌ vượt tồn kho
-            if (currentQty + quantity > product.Inventory.Quantity)
+            try
             {
-                return Json(new
+                if (quantity < 1) quantity = 1;
+
+                var product = await _context.Products
+                    .Include(p => p.Inventory)
+                    .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
+
+                if (product == null)
+                    return Json(new { ok = false, message = "Sản phẩm không tồn tại" });
+
+                if (product.Inventory == null || product.Inventory.Quantity <= 0)
+                    return Json(new { ok = false, message = "Sản phẩm đã hết hàng" });
+
+                var cart = await GetOrCreateCartAsync();
+
+                var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+                var currentQty = item?.Quantity ?? 0;
+
+                // ❌ vượt tồn kho
+                if (currentQty + quantity > product.Inventory.Quantity)
                 {
-                    ok = false,
-                    message = $"Chỉ còn {product.Inventory.Quantity} phần"
-                });
-            }
+                    return Json(new
+                    {
+                        ok = false,
+                        message = $"Chỉ còn {product.Inventory.Quantity} phần"
+                    });
+                }
 
-            if (item == null)
-            {
-                item = new CartItem
+                if (item == null)
                 {
-                    CartId = cart.Id,
-                    ProductId = productId,
-                    Quantity = quantity,
-                    UnitPriceText = product.PriceText
-                };
-                _context.CartItems.Add(item);
+                    item = new CartItem
+                    {
+                        CartId = cart.Id,
+                        ProductId = productId,
+                        Quantity = quantity,
+                        UnitPriceText = product.PriceText
+                    };
+                    _context.CartItems.Add(item);
+                }
+                else
+                {
+                    item.Quantity += quantity;
+                }
+
+                await _context.SaveChangesAsync();
+
+                var totalQty = await _context.CartItems
+                    .Where(i => i.CartId == cart.Id)
+                    .SumAsync(i => i.Quantity);
+
+                return Json(new { ok = true, totalQty });
             }
-            else
+            catch (Exception ex)
             {
-                item.Quantity += quantity;
+                return Json(new { ok = false, message = "Lỗi: " + ex.Message });
             }
-
-            await _context.SaveChangesAsync();
-
-            var totalQty = await _context.CartItems
-                .Where(i => i.CartId == cart.Id)
-                .SumAsync(i => i.Quantity);
-
-            return Json(new { ok = true, totalQty });
         }
 
 

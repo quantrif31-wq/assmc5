@@ -78,57 +78,65 @@ namespace Lab4.ApiControllers
         [HttpPost("add")]
         public async Task<IActionResult> Add(int productId, int quantity = 1)
         {
-            if (quantity < 1) quantity = 1;
-
-            var product = await _context.Products
-                .Include(p => p.Inventory)
-                .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
-
-            if (product == null)
-                return NotFound(new { message = "Sản phẩm không tồn tại" });
-
-            if (product.Inventory == null || product.Inventory.Quantity <= 0)
-                return BadRequest(new { message = "Sản phẩm đã hết hàng" });
-
-            var cart = await GetOrCreateCartAsync();
-
-            var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
-            var currentQty = item?.Quantity ?? 0;
-
-            if (currentQty + quantity > product.Inventory.Quantity)
+            try
             {
-                return BadRequest(new
+                if (quantity < 1) quantity = 1;
+
+                var product = await _context.Products
+                    .Include(p => p.Inventory)
+                    .FirstOrDefaultAsync(p => p.Id == productId && p.IsActive);
+
+                if (product == null)
+                    return NotFound(new { ok = false, message = "Sản phẩm không tồn tại" });
+
+                if (product.Inventory == null || product.Inventory.Quantity <= 0)
+                    return BadRequest(new { ok = false, message = "Sản phẩm đã hết hàng" });
+
+                var cart = await GetOrCreateCartAsync();
+
+                var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
+                var currentQty = item?.Quantity ?? 0;
+
+                if (currentQty + quantity > product.Inventory.Quantity)
                 {
-                    message = $"Chỉ còn {product.Inventory.Quantity} phần"
+                    return BadRequest(new
+                    {
+                        ok = false,
+                        message = $"Chỉ còn {product.Inventory.Quantity} phần"
+                    });
+                }
+
+                if (item == null)
+                {
+                    _context.CartItems.Add(new CartItem
+                    {
+                        CartId = cart.Id,
+                        ProductId = productId,
+                        Quantity = quantity,
+                        UnitPriceText = product.PriceText
+                    });
+                }
+                else
+                {
+                    item.Quantity += quantity;
+                }
+
+                await _context.SaveChangesAsync();
+
+                var totalQty = await _context.CartItems
+                    .Where(i => i.CartId == cart.Id)
+                    .SumAsync(i => i.Quantity);
+
+                return Ok(new
+                {
+                    ok = true,
+                    totalQty
                 });
             }
-
-            if (item == null)
+            catch (Exception ex)
             {
-                _context.CartItems.Add(new CartItem
-                {
-                    CartId = cart.Id,
-                    ProductId = productId,
-                    Quantity = quantity,
-                    UnitPriceText = product.PriceText
-                });
+                return StatusCode(500, new { ok = false, message = "Lỗi server: " + ex.Message });
             }
-            else
-            {
-                item.Quantity += quantity;
-            }
-
-            await _context.SaveChangesAsync();
-
-            var totalQty = await _context.CartItems
-                .Where(i => i.CartId == cart.Id)
-                .SumAsync(i => i.Quantity);
-
-            return Ok(new
-            {
-                ok = true,
-                totalQty
-            });
         }
 
         // =========================
@@ -299,7 +307,7 @@ namespace Lab4.ApiControllers
             var sb = new StringBuilder();
             foreach (var c in priceText)
                 if (char.IsDigit(c)) sb.Append(c);
-            return long.Parse(sb.ToString());
+            return long.TryParse(sb.ToString(), out var v) ? v : 0;
         }
 
         private static string FormatVnd(decimal amount)

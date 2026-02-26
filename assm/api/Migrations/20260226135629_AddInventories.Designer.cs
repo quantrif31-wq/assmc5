@@ -4,6 +4,7 @@ using Lab4.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace lab4.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226135629_AddInventories")]
+    partial class AddInventories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,7 +53,7 @@ namespace lab4.Migrations
                         .IsUnique()
                         .HasFilter("[UserId] IS NOT NULL");
 
-                    b.ToTable("Carts", (string)null);
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("Lab4.Models.CartItem", b =>
@@ -81,7 +84,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("CartItems", (string)null);
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("Lab4.Models.Inventory", b =>
@@ -108,7 +111,7 @@ namespace lab4.Migrations
                     b.HasIndex("ProductId")
                         .IsUnique();
 
-                    b.ToTable("Inventories", (string)null);
+                    b.ToTable("Inventories");
 
                     b.HasData(
                         new
@@ -241,7 +244,7 @@ namespace lab4.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Lab4.Models.OrderItem", b =>
@@ -278,7 +281,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Lab4.Models.Product", b =>
@@ -315,7 +318,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("SortOrder");
 
-                    b.ToTable("Products", (string)null);
+                    b.ToTable("Products");
 
                     b.HasData(
                         new
@@ -612,7 +615,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("PurchaseOrderId");
 
-                    b.ToTable("GoodsReceipts", (string)null);
+                    b.ToTable("GoodsReceipts");
                 });
 
             modelBuilder.Entity("lab4.Models.GoodsReceiptItem", b =>
@@ -641,7 +644,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("GoodsReceiptItems", (string)null);
+                    b.ToTable("GoodsReceiptItems");
                 });
 
             modelBuilder.Entity("lab4.Models.InventoryLog", b =>
@@ -682,7 +685,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryLogs", (string)null);
+                    b.ToTable("InventoryLogs");
                 });
 
             modelBuilder.Entity("lab4.Models.PriceHistory", b =>
@@ -718,7 +721,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PriceHistories", (string)null);
+                    b.ToTable("PriceHistories");
                 });
 
             modelBuilder.Entity("lab4.Models.PurchaseOrder", b =>
@@ -745,7 +748,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("PurchaseOrders", (string)null);
+                    b.ToTable("PurchaseOrders");
                 });
 
             modelBuilder.Entity("lab4.Models.PurchaseOrderItem", b =>
@@ -777,7 +780,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("PurchaseOrderId");
 
-                    b.ToTable("PurchaseOrderItems", (string)null);
+                    b.ToTable("PurchaseOrderItems");
                 });
 
             modelBuilder.Entity("lab4.Models.Supplier", b =>
@@ -815,7 +818,7 @@ namespace lab4.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers", (string)null);
+                    b.ToTable("Suppliers");
                 });
 
             modelBuilder.Entity("lab4.Models.SupplierProduct", b =>
@@ -830,7 +833,7 @@ namespace lab4.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("SupplierProducts", (string)null);
+                    b.ToTable("SupplierProducts");
                 });
 
             modelBuilder.Entity("Lab4.Models.CartItem", b =>

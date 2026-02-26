@@ -1,8 +1,10 @@
 ﻿using Lab4.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace lab4.Controllers
 {
+    [Authorize]
     public class OrdersController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -37,6 +39,7 @@ namespace lab4.Controllers
 
         // Cập nhật trạng thái
         [HttpPost]
+        [Authorize(Roles = "StoreManager,KitchenStaff")] // Kế toán không được phép đổi trạng thái
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
             var order = await _context.Orders.FindAsync(id);
@@ -44,9 +47,32 @@ namespace lab4.Controllers
             if (order == null)
                 return NotFound();
 
+            // Logic State Machine: Chỉ cho phép trạng thái tiến lên
+            bool isValidTransition = false;
+
+            if (order.Status == "Pending" && (status == "Preparing" || status == "Cancelled"))
+            {
+                isValidTransition = true;
+            }
+            else if (order.Status == "Preparing" && status == "Delivering")
+            {
+                isValidTransition = true;
+            }
+            else if (order.Status == "Delivering" && status == "Done")
+            {
+                isValidTransition = true;
+            }
+
+            if (!isValidTransition)
+            {
+                TempData["ErrorMessage"] = "Chuyển trạng thái không hợp lệ! Không thể lùi trạng thái đơn hàng.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             order.Status = status;
             await _context.SaveChangesAsync();
 
+            TempData["SuccessMessage"] = "Cập nhật trạng thái thành công.";
             return RedirectToAction(nameof(Details), new { id });
         }
     }

@@ -84,6 +84,7 @@ namespace Lab4.Controllers
         }
 
         // GET: Admin/Product
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> QL_SP()
         {
             var products = await _context.Products
@@ -94,6 +95,7 @@ namespace Lab4.Controllers
         }
 
         // GET: Admin/Product/Create
+        [Authorize(Roles = "StoreManager")]
         public IActionResult Create()
         {
             return View();
@@ -102,6 +104,7 @@ namespace Lab4.Controllers
         // POST: Admin/Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> Create(Product product)
         {
             if (!ModelState.IsValid)
@@ -121,6 +124,7 @@ namespace Lab4.Controllers
         }
 
         // GET: Admin/Product/Edit/5
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> Edit(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -131,6 +135,7 @@ namespace Lab4.Controllers
         // POST: Admin/Product/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> Edit(int id, Product product)
         {
             if (id != product.Id) return NotFound();
@@ -144,6 +149,7 @@ namespace Lab4.Controllers
         }
 
         // GET: Admin/Product/Delete/5
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -154,6 +160,7 @@ namespace Lab4.Controllers
         // POST: Admin/Product/Delete (SOFT DELETE)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -168,6 +175,7 @@ namespace Lab4.Controllers
 
         // POST: Admin/Product/ToggleActive
         [HttpPost]
+        [Authorize(Roles = "StoreManager")]
         public async Task<IActionResult> ToggleActive(int id)
         {
             var product = await _context.Products.FindAsync(id);
