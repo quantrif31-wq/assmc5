@@ -234,6 +234,26 @@ using (var scope = app.Services.CreateScope())
         db.Set<lab4.Models.Supplier>().AddRange(suppliers);
         db.SaveChanges();
     }
+
+    // ===== SEED SAMPLE AUDIT LOGS =====
+    if (!db.AuditLogs.Any())
+    {
+        var auditLogs = new List<Lab4.Models.AuditLog>
+        {
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="1",  OldValue="Pending",   NewValue="Completed",  Description="Đơn hàng #1: Pending → Completed",                                          PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,18,11,0,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="5",  OldValue="Pending",   NewValue="Cancelled",  Description="Đơn hàng #5: Pending → Cancelled",                                          PerformedBy="staff01@food.com", PerformedAt=new DateTime(2026,2,21,16,30,0,DateTimeKind.Utc) },
+            new() { Action="PriceChanged",       EntityType="Product", EntityId="1", OldValue="45,000đ",  NewValue="50,000đ",    Description="Đổi giá \"Bún Bò Huế\": 45,000đ → 50,000đ. Lý do: Tăng giá nguyên liệu",      PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,19,9,0,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="2",  OldValue="Pending",   NewValue="Completed",  Description="Đơn hàng #2: Pending → Completed",                                          PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,19,15,0,0,DateTimeKind.Utc) },
+            new() { Action="PriceChanged",       EntityType="Product", EntityId="6", OldValue="80,000đ",  NewValue="90,000đ",    Description="Đổi giá \"Cơm Tấm\": 80,000đ → 90,000đ. Lý do: Điều chỉnh theo thị trường",   PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,20,8,0,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="3",  OldValue="Preparing", NewValue="Delivering", Description="Đơn hàng #3: Preparing → Delivering",                                       PerformedBy="staff01@food.com", PerformedAt=new DateTime(2026,2,20,10,0,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="3",  OldValue="Delivering",NewValue="Completed",  Description="Đơn hàng #3: Delivering → Completed",                                       PerformedBy="staff01@food.com", PerformedAt=new DateTime(2026,2,20,11,0,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="7",  OldValue="Pending",   NewValue="Completed",  Description="Đơn hàng #7: Pending → Completed",                                          PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,23,13,0,0,DateTimeKind.Utc) },
+            new() { Action="PriceChanged",       EntityType="Product", EntityId="3", OldValue="48,000đ",  NewValue="50,000đ",    Description="Đổi giá \"Phở Gà\": 48,000đ → 50,000đ. Lý do: Cập nhật giá mới",              PerformedBy="admin@food.com",  PerformedAt=new DateTime(2026,2,24,8,30,0,DateTimeKind.Utc) },
+            new() { Action="OrderStatusChanged", EntityType="Order", EntityId="8",  OldValue="Pending",   NewValue="Completed",  Description="Đơn hàng #8: Pending → Completed",                                          PerformedBy="staff01@food.com", PerformedAt=new DateTime(2026,2,24,11,0,0,DateTimeKind.Utc) },
+        };
+        db.AuditLogs.AddRange(auditLogs);
+        db.SaveChanges();
+    }
 }
 app.UseHttpsRedirection();
 app.UseRouting();

@@ -66,8 +66,23 @@ namespace lab4.Controllers.Admin
                     ChangedBy = User.FindFirstValue(ClaimTypes.Name)
                 });
 
+                var oldPrice = product!.PriceVnd;
+
                 // 2. cập nhật giá hiện hành
-                product!.PriceVnd = newPrice;
+                product.PriceVnd = newPrice;
+
+                // 3. AUDIT LOG
+                _context.Set<Lab4.Models.AuditLog>().Add(new Lab4.Models.AuditLog
+                {
+                    Action = "PriceChanged",
+                    EntityType = "Product",
+                    EntityId = productId.ToString(),
+                    OldValue = oldPrice.ToString("N0") + "đ",
+                    NewValue = newPrice.ToString("N0") + "đ",
+                    Description = $"Đổi giá \"{product.Name}\": {oldPrice:N0}đ → {newPrice:N0}đ. Lý do: {reason}",
+                    PerformedBy = User.Identity?.Name ?? "Unknown",
+                    PerformedAt = DateTime.UtcNow
+                });
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
