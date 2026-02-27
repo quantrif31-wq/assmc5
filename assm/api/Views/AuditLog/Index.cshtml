@@ -1,0 +1,369 @@
+@model List<Lab4.Models.AuditLog>
+
+@{
+    ViewData["Title"] = "Lịch sử hệ thống";
+    var actionFilter = ViewBag.ActionFilter as string;
+    var search = ViewBag.Search as string;
+}
+
+@section Styles {
+<style>
+    .audit-container {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 24px;
+    }
+
+    .audit-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    .audit-header h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f1f1f;
+        margin-bottom: 6px;
+    }
+
+    .audit-header p {
+        color: #666;
+        font-size: 14px;
+    }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .filter-bar .filter-btn {
+        padding: 8px 18px;
+        border-radius: 999px;
+        border: 1px solid rgba(0,0,0,.15);
+        background: #fff;
+        color: #333;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all .2s;
+    }
+
+    .filter-bar .filter-btn:hover {
+        background: #f5f5f5;
+        border-color: rgba(0,0,0,.25);
+    }
+
+    .filter-bar .filter-btn.active {
+        background: #1f1f1f;
+        color: #fff;
+        border-color: #1f1f1f;
+    }
+
+    .filter-bar .search-box {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+    }
+
+    .filter-bar .search-box input {
+        padding: 8px 14px;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 999px;
+        font-size: 13px;
+        width: 220px;
+        outline: none;
+    }
+
+    .filter-bar .search-box input:focus {
+        border-color: rgba(0,0,0,.35);
+    }
+
+    .filter-bar .search-box button {
+        padding: 8px 16px;
+        border-radius: 999px;
+        border: none;
+        background: #1f1f1f;
+        color: #fff;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    /* ===== TABLE ===== */
+    .audit-table-wrapper {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(12px);
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,.08);
+        box-shadow: 0 12px 40px rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .audit-table thead {
+        background: #fafafa;
+    }
+
+    .audit-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: #555;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+
+    .audit-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(0,0,0,.05);
+        vertical-align: top;
+    }
+
+    .audit-table tbody tr {
+        transition: background .15s;
+    }
+
+    .audit-table tbody tr:hover {
+        background: rgba(0,0,0,.02);
+    }
+
+    /* Badges */
+    .badge-action {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .badge-order {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .badge-price {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-other {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    /* Values */
+    .old-value {
+        color: #dc2626;
+        text-decoration: line-through;
+        font-weight: 500;
+    }
+
+    .new-value {
+        color: #16a34a;
+        font-weight: 600;
+    }
+
+    .arrow {
+        color: #999;
+        margin: 0 4px;
+    }
+
+    .performer {
+        font-weight: 600;
+        color: #1f1f1f;
+    }
+
+    .timestamp {
+        color: #888;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #999;
+    }
+
+    .empty-state .icon {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    /* Stats cards */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(12px);
+        border-radius: 14px;
+        border: 1px solid rgba(0,0,0,.08);
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 6px 20px rgba(0,0,0,.04);
+    }
+
+    .stat-card .number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f1f1f;
+    }
+
+    .stat-card .label {
+        font-size: 13px;
+        color: #888;
+        margin-top: 4px;
+    }
+
+    @@media (max-width: 768px) {
+        .filter-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .filter-bar .search-box {
+            margin-left: 0;
+        }
+
+        .filter-bar .search-box input {
+            width: 100%;
+        }
+
+        .audit-table {
+            font-size: 13px;
+        }
+
+        .audit-table th, .audit-table td {
+            padding: 10px 12px;
+        }
+    }
+</style>
+}
+
+<div class="audit-container">
+    <div class="audit-header">
+        <h1>📋 Lịch sử hệ thống</h1>
+        <p>Theo dõi toàn bộ thao tác quan trọng — chống gian lận nội bộ</p>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    @{
+        var totalLogs = Model.Count;
+        var orderLogs = Model.Count(x => x.Action == "OrderStatusChanged");
+        var priceLogs = Model.Count(x => x.Action == "PriceChanged");
+    }
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="number">@totalLogs</div>
+            <div class="label">Tổng thao tác</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">@orderLogs</div>
+            <div class="label">Thay đổi đơn hàng</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">@priceLogs</div>
+            <div class="label">Thay đổi giá</div>
+        </div>
+    </div>
+
+    <!-- ===== FILTER ===== -->
+    <div class="filter-bar">
+        <a class="filter-btn @(string.IsNullOrEmpty(actionFilter) ? "active" : "")"
+           href="/AuditLog/Index">Tất cả</a>
+
+        <a class="filter-btn @(actionFilter == "OrderStatusChanged" ? "active" : "")"
+           href="/AuditLog/Index?actionFilter=OrderStatusChanged">📝 Đơn hàng</a>
+
+        <a class="filter-btn @(actionFilter == "PriceChanged" ? "active" : "")"
+           href="/AuditLog/Index?actionFilter=PriceChanged">💲 Giá sản phẩm</a>
+
+        <form class="search-box" method="get" action="/AuditLog/Index">
+            @if (!string.IsNullOrEmpty(actionFilter))
+            {
+                <input type="hidden" name="actionFilter" value="@actionFilter" />
+            }
+            <input type="text" name="search" placeholder="Tìm kiếm..." value="@search" />
+            <button type="submit">🔍</button>
+        </form>
+    </div>
+
+    <!-- ===== TABLE ===== -->
+    <div class="audit-table-wrapper">
+        @if (Model.Any())
+        {
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Thời gian</th>
+                        <th>Nhân viên</th>
+                        <th>Loại</th>
+                        <th>Chi tiết</th>
+                        <th>Giá trị</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td class="timestamp">
+                                @log.PerformedAt.ToLocalTime().ToString("dd/MM/yyyy")
+                                <br />
+                                @log.PerformedAt.ToLocalTime().ToString("HH:mm:ss")
+                            </td>
+                            <td>
+                                <span class="performer">@log.PerformedBy</span>
+                            </td>
+                            <td>
+                                @if (log.Action == "OrderStatusChanged")
+                                {
+                                    <span class="badge-action badge-order">Đơn hàng</span>
+                                }
+                                else if (log.Action == "PriceChanged")
+                                {
+                                    <span class="badge-action badge-price">Giá sản phẩm</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-action badge-other">@log.Action</span>
+                                }
+                            </td>
+                            <td>@log.Description</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(log.OldValue))
+                                {
+                                    <span class="old-value">@log.OldValue</span>
+                                    <span class="arrow">→</span>
+                                    <span class="new-value">@log.NewValue</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="icon">📭</div>
+                <p>Chưa có lịch sử nào được ghi lại</p>
+            </div>
+        }
+    </div>
+</div>

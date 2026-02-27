@@ -80,7 +80,22 @@ namespace lab4.Controllers
                 }
             }
 
+            var oldStatus = order.Status;
             order.Status = status;
+
+            // ===== AUDIT LOG =====
+            _context.AuditLogs.Add(new Lab4.Models.AuditLog
+            {
+                Action = "OrderStatusChanged",
+                EntityType = "Order",
+                EntityId = id.ToString(),
+                OldValue = oldStatus,
+                NewValue = status,
+                Description = $"Đơn hàng #{id}: {oldStatus} → {status}",
+                PerformedBy = User.Identity?.Name ?? "Unknown",
+                PerformedAt = DateTime.UtcNow
+            });
+
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Cập nhật trạng thái thành công.";
