@@ -160,6 +160,7 @@
             <p class="mb-1"><strong>SĐT:</strong> @Model.Phone</p>
             <p class="mb-1"><strong>Email:</strong> @Model.Email</p>
             <p class="mb-1"><strong>Địa chỉ:</strong> @Model.Address, @Model.City</p>
+            <p class="mb-1"><strong>Quận/Huyện:</strong> @(Model.District ?? "—")</p>
             <p class="mb-0"><strong>Ghi chú:</strong> @Model.Note</p>
         </div>
     </div>
@@ -289,5 +290,28 @@
             }
         </tbody>
     </table>
+
+    @* ===== TỔNG TIỀN CHI TIẾT ===== *@
+    <div style="max-width: 350px; margin-left: auto; margin-top: 16px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: rgba(0,0,0,.6);">
+            <span>Tạm tính</span>
+            <span>@string.Format("{0:N0} ₫", Model.Subtotal)</span>
+        </div>
+        @if (Model.Tax > 0)
+        {
+            <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: rgba(0,0,0,.6);">
+                <span>Thuế</span>
+                <span>@string.Format("{0:N0} ₫", Model.Tax)</span>
+            </div>
+        }
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; color: rgba(0,0,0,.6);">
+            <span>Phí vận chuyển (@(Model.District ?? "—"))</span>
+            <span>@string.Format("{0:N0} ₫", Model.ShippingFee)</span>
+        </div>
+        <div style="border-top: 2px solid rgba(0,0,0,.2); margin-top: 6px; padding-top: 8px; display: flex; justify-content: space-between; font-size: 17px; font-weight: 800;">
+            <span>Tổng cộng</span>
+            <span>@string.Format("{0:N0} ₫", Model.Total)</span>
+        </div>
+    </div>
 
 </div>
