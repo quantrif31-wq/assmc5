@@ -1,4 +1,5 @@
 ﻿using lab4.Models;
+using Lab4.ApiControllers;
 using Lab4.Data;
 using Lab4.Models;
 using Lab4.Services;
@@ -53,7 +54,8 @@ namespace Lab4.Controllers
 
             decimal taxRate = 0m;
             decimal tax = Math.Round(subtotal * taxRate, 0, MidpointRounding.AwayFromZero);
-            decimal total = subtotal + tax;
+            decimal shippingFee = 0m; // mặc định, sẽ cập nhật real-time qua AJAX
+            decimal total = subtotal + tax + shippingFee;
 
             var vm = new CheckoutVM
             {
@@ -73,9 +75,11 @@ namespace Lab4.Controllers
                 Currency = "VND",
                 Subtotal = subtotal,
                 Tax = tax,
+                ShippingFee = shippingFee,
                 Total = total,
                 SubtotalText = FormatVnd(subtotal),
                 TaxText = FormatVnd(tax),
+                ShippingFeeText = FormatVnd(shippingFee),
                 TotalText = FormatVnd(total)
             };
 
@@ -123,7 +127,12 @@ namespace Lab4.Controllers
                 subtotal += ParseVndToLong(i.UnitPriceText) * i.Quantity;
 
             decimal tax = 0;
-            decimal total = subtotal + tax;
+
+            // ===== TÍNH PHÍ SHIP PHÍA SERVER (bảo mật) =====
+            decimal shippingFee = ShippingApiController.GetShippingFee(vm.DistrictId);
+            string? districtName = ShippingApiController.GetDistrictName(vm.DistrictId);
+
+            decimal total = subtotal + tax + shippingFee;
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -141,13 +150,15 @@ namespace Lab4.Controllers
                     FullName = vm.FullName,
                     Phone = vm.Phone,
                     Address = vm.Address,
-                    City = vm.City,
+                    City = districtName ?? vm.City,
+                    District = districtName,
                     Email = vm.Email,
                     Note = vm.Note,
                     PaymentMethod = vm.PaymentMethod,
 
                     Subtotal = subtotal,
                     Tax = tax,
+                    ShippingFee = shippingFee,
                     Total = total,
                     Status = initialStatus
                 };

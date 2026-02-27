@@ -41,6 +41,13 @@ namespace Lab4.Models
         // ===== TỔNG TIỀN =====
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
+
+        // ===== PHÍ VẬN CHUYỂN =====
+        public decimal ShippingFee { get; set; }
+
+        [StringLength(80)]
+        public string? District { get; set; }
+
         public decimal Total { get; set; }
 
         // ===== TRẠNG THÁI =====

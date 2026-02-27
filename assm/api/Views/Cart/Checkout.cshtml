@@ -266,9 +266,11 @@
                         <input class="c-input" asp-for="Address" placeholder="Số nhà, đường, phường/xã..." />
                         <span asp-validation-for="Address" class="validation"></span>
 
-                        <div class="field-label">Quận/Huyện - Tỉnh/TP</div>
-                        <input class="c-input" asp-for="City" placeholder="Ví dụ: Q.1, TP.HCM" />
-                        <span asp-validation-for="City" class="validation"></span>
+                        <div class="field-label">Quận/Huyện</div>
+                        <select class="c-select" id="districtSelect" asp-for="DistrictId">
+                            <option value="0">-- Chọn Quận/Huyện --</option>
+                        </select>
+                        <input type="hidden" asp-for="City" id="cityHidden" />
 
                         <div class="field-label">Email (tuỳ chọn)</div>
                         <input class="c-input" asp-for="Email" placeholder="abc@email.com" />
@@ -339,8 +341,13 @@
                         </div>
 
                         <div class="sum-row">
+                            <div class="sum-name">Phí vận chuyển</div>
+                            <div class="sum-pill" id="shippingFeeText">@Model.ShippingFeeText</div>
+                        </div>
+
+                        <div class="sum-row">
                             <div class="sum-name sum-strong">Tổng cộng</div>
-                            <div class="sum-pill sum-strong">@Model.TotalText</div>
+                            <div class="sum-pill sum-strong" id="totalText">@Model.TotalText</div>
                         </div>
                     </div>
                 </div>
@@ -361,4 +368,64 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function () {
+            const districtSelect = document.getElementById('districtSelect');
+            const cityHidden = document.getElementById('cityHidden');
+            const shippingFeeEl = document.getElementById('shippingFeeText');
+            const totalEl = document.getElementById('totalText');
+
+            // Giá trị subtotal + tax từ server (đơn vị đồng)
+            const subtotal = @((long)Model.Subtotal);
+            const tax = @((long)Model.Tax);
+
+            // 1. Load danh sách quận khi trang mở
+            fetch('/api/shipping/districts')
+                .then(r => r.json())
+                .then(districts => {
+                    districts.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name + ' (' + d.feeText + ')';
+                        districtSelect.appendChild(opt);
+                    });
+                });
+
+            // 2. Khi chọn quận → gọi API lấy phí ship → cập nhật real-time
+            districtSelect.addEventListener('change', function () {
+                const districtId = this.value;
+
+                if (!districtId || districtId === '0') {
+                    shippingFeeEl.textContent = '0 ₫';
+                    totalEl.textContent = formatVnd(subtotal + tax);
+                    cityHidden.value = '';
+                    return;
+                }
+
+                fetch('/api/shipping/fee?districtId=' + districtId)
+                    .then(r => r.json())
+                    .then(data => {
+                        // Cập nhật phí ship
+                        shippingFeeEl.textContent = data.feeText;
+
+                        // Cập nhật tổng cộng
+                        const newTotal = subtotal + tax + data.fee;
+                        totalEl.textContent = formatVnd(newTotal);
+
+                        // Gán tên quận vào City hidden
+                        cityHidden.value = data.districtName;
+                    })
+                    .catch(() => {
+                        shippingFeeEl.textContent = '0 ₫';
+                        totalEl.textContent = formatVnd(subtotal + tax);
+                    });
+            });
+
+            // Format số thành VND
+            function formatVnd(amount) {
+                return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+            }
+        })();
+    </script>
 }
