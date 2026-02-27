@@ -20,17 +20,21 @@ namespace Lab4.Models
     }
     public class CartItem
     {
-        public int Id { get; set; }            // PK
+        public int Id { get; set; }
 
-        public int CartId { get; set; }        // FK -> Carts
+        public int CartId { get; set; }
         public Cart Cart { get; set; } = null!;
 
-        public int ProductId { get; set; }     // FK -> Products
-        public Product Product { get; set; } = null!;
+        // ===== PRODUCT =====
+        public int? ProductId { get; set; }
+        public Product? Product { get; set; }
+
+        // ===== COMBO =====
+        public int? ComboId { get; set; }
+        public Combo? Combo { get; set; }
 
         public int Quantity { get; set; } = 1;
 
-        // Lưu giá tại thời điểm thêm (tuỳ bạn có cần không)
         [MaxLength(50)]
         public string UnitPriceText { get; set; } = "";
     }

@@ -421,18 +421,34 @@
 
                                     <div class="qty">
                                         <div class="qty-box" aria-label="Quantity controls">
-                                            <a class="qty-btn"
-                                               asp-controller="Cart"
-                                               asp-action="Dec"
-                                               asp-route-productId="@it.ProductId">−</a>
-                                            <div class="qty-num" aria-label="Quantity">@it.Quantity</div>
-                                            <a class="qty-btn"
-                                               asp-controller="Cart"
-                                               asp-action="Inc"
-                                               asp-route-productId="@it.ProductId">+</a>
-                                            
+                                            @if (!it.IsCombo)
+                                            {
+                                                <a class="qty-btn"
+                                                   asp-controller="Cart"
+                                                   asp-action="Dec"
+                                                   asp-route-productId="@it.ProductId">−</a>
 
+                                                <div class="qty-num">@it.Quantity</div>
 
+                                                <a class="qty-btn"
+                                                   asp-controller="Cart"
+                                                   asp-action="Inc"
+                                                   asp-route-productId="@it.ProductId">+</a>
+                                            }
+                                            else
+                                            {
+                                                <a class="qty-btn"
+                                                   asp-controller="Cart"
+                                                   asp-action="DecCombo"
+                                                   asp-route-comboId="@it.ComboId">−</a>
+
+                                                <div class="qty-num">@it.Quantity</div>
+
+                                                <a class="qty-btn"
+                                                   asp-controller="Cart"
+                                                   asp-action="IncCombo"
+                                                   asp-route-comboId="@it.ComboId">+</a>
+                                            }
                                         </div>
                                     </div>
 

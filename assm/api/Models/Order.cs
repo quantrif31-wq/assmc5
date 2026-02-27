@@ -85,7 +85,8 @@ namespace Lab4.Models
         public Order Order { get; set; } = null!;
 
         // ===== SẢN PHẨM =====
-        public int ProductId { get; set; }     // để trace
+        public int? ProductId { get; set; }     // để trace
+        public int? ComboId { get; set; }
         [Required, StringLength(120)]
         public string ProductName { get; set; } = "";
 

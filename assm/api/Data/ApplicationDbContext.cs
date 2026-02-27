@@ -187,5 +187,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Combo>()
             .Property(c => c.PriceVnd)
             .HasPrecision(18, 2);
+        builder.Entity<CartItem>()
+    .HasOne(ci => ci.Combo)
+    .WithMany()
+    .HasForeignKey(ci => ci.ComboId)
+    .OnDelete(DeleteBehavior.Restrict);
     }
 }

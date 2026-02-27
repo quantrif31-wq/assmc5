@@ -36,7 +36,8 @@ namespace Lab4.Controllers
             await _context.Entry(cart)
                 .Collection(c => c.Items)
                 .Query()
-                .Include(i => i.Product)
+               .Include(i => i.Product)
+.Include(i => i.Combo)
                 .LoadAsync();
 
             if (cart.Items == null || !cart.Items.Any())
@@ -66,7 +67,7 @@ namespace Lab4.Controllers
                     var unit = (decimal)ParseVndToLong(i.UnitPriceText);
                     return new CheckoutItemVM
                     {
-                        Name = i.Product?.Name ?? "",
+                        Name = i.Product?.Name ?? i.Combo?.Name ?? "",
                         Qty = i.Quantity,
                         PriceText = FormatVnd(unit * i.Quantity)
                     };
@@ -108,14 +109,39 @@ namespace Lab4.Controllers
             // =========================
             foreach (var ci in cart.Items)
             {
-                var inventory = await _context.Inventories
-                    .FirstOrDefaultAsync(i => i.ProductId == ci.ProductId);
-
-                if (inventory == null || inventory.Quantity < ci.Quantity)
+                // ===== PRODUCT =====
+                if (ci.ProductId != null)
                 {
-                    TempData["Error"] =
-                        $"{ci.Product?.Name ?? "Sản phẩm"} chỉ còn {inventory?.Quantity ?? 0} phần";
-                    return RedirectToAction(nameof(Checkout));
+                    var inventory = await _context.Inventories
+                        .FirstOrDefaultAsync(i => i.ProductId == ci.ProductId);
+
+                    if (inventory == null || inventory.Quantity < ci.Quantity)
+                    {
+                        TempData["Error"] =
+                            $"{ci.Product?.Name ?? "Sản phẩm"} chỉ còn {inventory?.Quantity ?? 0} phần";
+                        return RedirectToAction(nameof(Checkout));
+                    }
+                }
+
+                // ===== COMBO =====
+                if (ci.ComboId != null)
+                {
+                    var combo = await _context.Combos
+                        .Include(c => c.ComboItems)
+                        .FirstOrDefaultAsync(c => c.Id == ci.ComboId);
+
+                    foreach (var comboItem in combo.ComboItems)
+                    {
+                        var inventory = await _context.Inventories
+                            .FirstOrDefaultAsync(i => i.ProductId == comboItem.ProductId);
+
+                        if (inventory == null || inventory.Quantity < ci.Quantity)
+                        {
+                            TempData["Error"] =
+                                $"Một món trong combo không đủ hàng";
+                            return RedirectToAction(nameof(Checkout));
+                        }
+                    }
                 }
             }
 
@@ -176,8 +202,9 @@ namespace Lab4.Controllers
                     _context.OrderItems.Add(new OrderItem
                     {
                         OrderId = order.Id,
-                        ProductId = ci.ProductId,
-                        ProductName = ci.Product!.Name,
+                        ProductId = ci.ProductId,   // có thể null
+                        ComboId = ci.ComboId,       // thêm field này
+                        ProductName = ci.Product?.Name ?? ci.Combo?.Name,
                         UnitPrice = unit,
                         Quantity = ci.Quantity,
                         LineTotal = unit * ci.Quantity
@@ -193,16 +220,32 @@ namespace Lab4.Controllers
                 {
                     foreach (var ci in cart.Items)
                     {
-                        var inventory = await _context.Inventories
-                            .FirstAsync(i => i.ProductId == ci.ProductId);
+                        // ===== PRODUCT =====
+                        if (ci.ProductId != null)
+                        {
+                            var inventory = await _context.Inventories
+                                .FirstAsync(i => i.ProductId == ci.ProductId);
 
-                        if (inventory.Quantity < ci.Quantity)
-                            throw new Exception("Inventory not enough");
+                            inventory.Quantity -= ci.Quantity;
+                            inventory.UpdatedAt = DateTime.Now;
+                        }
 
-                        inventory.Quantity -= ci.Quantity;
-                        inventory.UpdatedAt = DateTime.Now;
+                        // ===== COMBO =====
+                        if (ci.ComboId != null)
+                        {
+                            var combo = await _context.Combos
+                                .Include(c => c.ComboItems)
+                                .FirstAsync(c => c.Id == ci.ComboId);
 
-                        _context.Inventories.Update(inventory);
+                            foreach (var comboItem in combo.ComboItems)
+                            {
+                                var inventory = await _context.Inventories
+                                    .FirstAsync(i => i.ProductId == comboItem.ProductId);
+
+                                inventory.Quantity -= ci.Quantity;
+                                inventory.UpdatedAt = DateTime.Now;
+                            }
+                        }
                     }
 
                     _context.CartItems.RemoveRange(cart.Items);
@@ -555,6 +598,7 @@ namespace Lab4.Controllers
                 .Collection(c => c.Items)
                 .Query()
                 .Include(i => i.Product)
+                .Include(i => i.Combo)
                 .LoadAsync();
 
             // ===== TÍNH TIỀN =====
@@ -562,7 +606,13 @@ namespace Lab4.Controllers
 
             foreach (var i in cart.Items)
             {
-                var unit = ParseVndToLong(i.UnitPriceText);   // "50.000 VND" -> 50000
+                long unit = 0;
+
+                if (i.ProductId != null)
+                    unit = ParseVndToLong(i.UnitPriceText);
+
+                if (i.ComboId != null)
+                    unit = ParseVndToLong(i.UnitPriceText);   // "50.000 VND" -> 50000
                 subtotal += unit * i.Quantity;
             }
 
@@ -580,14 +630,15 @@ namespace Lab4.Controllers
                     var unit = ParseVndToLong(i.UnitPriceText);
                     var line = unit * i.Quantity;
 
-                    return new Lab4.Models.CartItemViewModel
+                    return new CartItemViewModel
                     {
                         ProductId = i.ProductId,
-                        Name = i.Product?.Name ?? "",
-                        ImageUrl = i.Product?.ImageUrl ?? "",
+                        ComboId = i.ComboId,
+                        Name = i.Product?.Name ?? i.Combo?.Name ?? "",
+                        ImageUrl = i.Product?.ImageUrl
+                                   ?? i.Combo?.ImageUrl
+                                   ?? "/images/default.png",
                         Quantity = i.Quantity,
-
-                        // ✅ Hiển thị đúng "đơn giá x số lượng"
                         LineTotalText = FormatVnd(line)
                     };
                 }).ToList(),
@@ -719,10 +770,7 @@ namespace Lab4.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddComboAjax(int comboId)
         {
-            // Lấy combo + các sản phẩm bên trong
             var combo = await _context.Combos
-                .Include(c => c.ComboItems)
-                .ThenInclude(ci => ci.Product)
                 .FirstOrDefaultAsync(c => c.Id == comboId && c.IsActive);
 
             if (combo == null)
@@ -730,24 +778,21 @@ namespace Lab4.Controllers
 
             var cart = await GetOrCreateCartAsync();
 
-            foreach (var item in combo.ComboItems)
-            {
-                var existing = cart.Items
-                    .FirstOrDefault(i => i.ProductId == item.ProductId);
+            var existing = cart.Items
+                .FirstOrDefault(i => i.ComboId == comboId);
 
-                if (existing != null)
+            if (existing != null)
+            {
+                existing.Quantity++;
+            }
+            else
+            {
+                cart.Items.Add(new CartItem
                 {
-                    existing.Quantity++;
-                }
-                else
-                {
-                    cart.Items.Add(new CartItem
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = 1,
-                        UnitPriceText = item.Product.PriceVnd.ToString("N0")
-                    });
-                }
+                    ComboId = comboId,
+                    Quantity = 1,
+                    UnitPriceText = combo.PriceVnd.ToString("N0")
+                });
             }
 
             await _context.SaveChangesAsync();
@@ -757,6 +802,38 @@ namespace Lab4.Controllers
                 ok = true,
                 totalQty = cart.Items.Sum(i => i.Quantity)
             });
+        }
+        [HttpGet]
+        public async Task<IActionResult> IncCombo(int comboId)
+        {
+            var cart = await GetOrCreateCartAsync();
+
+            var item = cart.Items.FirstOrDefault(i => i.ComboId == comboId);
+            if (item != null)
+            {
+                item.Quantity++;
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DecCombo(int comboId)
+        {
+            var cart = await GetOrCreateCartAsync();
+
+            var item = cart.Items.FirstOrDefault(i => i.ComboId == comboId);
+            if (item != null)
+            {
+                item.Quantity--;
+                if (item.Quantity <= 0)
+                    _context.CartItems.Remove(item);
+
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }
