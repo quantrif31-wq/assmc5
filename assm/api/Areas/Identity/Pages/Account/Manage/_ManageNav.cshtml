@@ -1,16 +1,94 @@
-@using lab4.Models
+﻿@using lab4.Models
 @inject SignInManager<ApplicationUser> SignInManager
 @{
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
-<ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+
+<style>
+    /* Reset cấu trúc danh mục điều hướng */
+    .manage-nav-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px; /* Khoảng cách giữa các mục menu */
+    }
+
+    /* Định dạng chung cho các liên kết điều hướng */
+    .manage-nav-link {
+        display: flex;
+        align-items: center;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.6) !important;
+        text-decoration: none !important;
+        border-radius: 12px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: transparent;
+    }
+
+        /* Hiệu ứng khi di chuột qua: Nhích nhẹ sang phải và đổi màu nền mờ */
+        .manage-nav-link:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: #000 !important;
+            transform: translateX(6px);
+        }
+
+        /* Trạng thái Active: Nền đen, chữ trắng để nổi bật hoàn toàn */
+        .manage-nav-link.active {
+            background: #000 !important;
+            color: #fff !important;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transform: translateX(4px);
+        }
+
+        /* Thêm các biểu tượng emoji trước mỗi mục (tùy chọn để giống style Apple/Hiện đại) */
+        .manage-nav-link::before {
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+    #profile::before {
+        content: "👤";
+    }
+
+    #email::before {
+        content: "📧";
+    }
+
+    #change-password::before {
+        content: "🔑";
+    }
+
+    #external-login::before {
+        content: "🌐";
+    }
+
+    #two-factor::before {
+        content: "🔐";
+    }
+
+    #personal-data::before {
+        content: "🛡️";
+    }
+</style>
+
+<ul class="manage-nav-list">
+    <li class="nav-item">
+        <a class="manage-nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Hồ sơ cá nhân</a>
+    </li>
+    <li class="nav-item">
+        <a class="manage-nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a>
+    </li>
+    <li class="nav-item">
+        <a class="manage-nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Mật khẩu</a>
+    </li>
     @if (hasExternalLogins)
     {
-        <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
+        <li id="external-logins" class="nav-item">
+            <a id="external-login" class="manage-nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">Liên kết ngoài</a>
+        </li>
     }
-    <li class="nav-item"><a class="nav-link @ManageNavPages.TwoFactorAuthenticationNavClass(ViewContext)" id="two-factor" asp-page="./TwoFactorAuthentication">Two-factor authentication</a></li>
-    <li class="nav-item"><a class="nav-link @ManageNavPages.PersonalDataNavClass(ViewContext)" id="personal-data" asp-page="./PersonalData">Personal data</a></li>
 </ul>

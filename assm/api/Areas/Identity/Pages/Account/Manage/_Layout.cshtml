@@ -10,94 +10,144 @@
 }
 
 <style>
-    @@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap');
+    @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;850&display=swap');
 
     body {
         margin: 0;
-        font-family: 'Montserrat', sans-serif;
-        background: #f6f5ef;
+        font-family: 'Inter', sans-serif;
+        background: #f6f5ef; /* Giữ màu nền gốc hoặc đổi thành gradient nhẹ */
     }
 
+    /* 1. Nền tổng thể với hiệu ứng hạt (Grainy) hoặc Pattern */
     .manage-bg {
         min-height: 100vh;
-        background: repeating-radial-gradient( circle at 0 0, rgba(0,0,0,0.03) 0, rgba(0,0,0,0.03) 40px, transparent 40px, transparent 80px );
+        background: repeating-radial-gradient( circle at 0 0, rgba(0,0,0,0.02) 0, rgba(0,0,0,0.02) 40px, transparent 40px, transparent 80px );
         padding: 60px 0;
         display: flex;
         justify-content: center;
+        align-items: flex-start;
     }
 
+    /* 2. Card chính phong cách Glassmorphism cực mạnh */
     .manage-card {
-        background: #fbfaf4;
-        border-radius: 22px;
-        width: 1000px;
-        padding: 40px 45px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px;
+        width: min(1100px, calc(100% - 40px));
+        padding: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 3. Tiêu đề chuẩn 850 và Icon giống ảnh mẫu */
+    .header-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 8px;
+    }
+
+    .header-icon {
+        font-size: 28px;
     }
 
     .manage-title {
-        font-weight: 600;
-        letter-spacing: 4px;
-        font-size: 26px;
-        color: #9a9a95;
-        margin-bottom: 10px;
+        font-weight: 850;
+        font-size: 30px;
+        color: #1a1a1a;
+        letter-spacing: -0.5px;
+        text-transform: uppercase;
     }
 
     .manage-subtitle {
         font-size: 14px;
-        color: #666;
-        margin-bottom: 25px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 35px;
+        font-weight: 500;
+        padding-left: 45px; /* Căn lề thẳng với chữ tiêu đề */
     }
 
     .manage-divider {
-        border-top: 1px solid #e5e5e0;
-        margin-bottom: 30px;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.08);
+        margin-bottom: 40px;
     }
 
+    /* 4. Layout chia cột hiện đại */
     .manage-layout {
         display: grid;
-        grid-template-columns: 240px 1fr;
-        gap: 35px;
+        grid-template-columns: 260px 1fr;
+        gap: 50px;
     }
 
-    /* NAV */
+    /* 5. Navigation bên trái (Menu kính) */
     .manage-nav {
-        border-right: 1px solid #e5e5e0;
-        padding-right: 25px;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
+        padding-right: 30px;
     }
 
+        /* Tinh chỉnh style cho các link trong partial _ManageNav */
         .manage-nav a {
             display: block;
+            padding: 12px 18px;
             font-size: 14px;
-            color: #666;
+            color: rgba(0, 0, 0, 0.6);
             text-decoration: none;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
-            .manage-nav a.active {
-                font-weight: 500;
-                color: #333;
-            }
-
             .manage-nav a:hover {
-                text-decoration: underline;
+                background: rgba(255, 255, 255, 0.5);
+                color: #000;
+                transform: translateX(5px);
             }
 
-    /* CONTENT */
+            .manage-nav a.active {
+                background: #000;
+                color: #fff !important;
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            }
+
+    /* 6. Vùng nội dung bên phải */
     .manage-content {
-        font-size: 14px;
-        color: #555;
+        font-size: 15px;
+        color: #2c2c2c;
     }
+
+        /* Tùy chỉnh Input bên trong nội dung để hợp phong cách kính */
+        .manage-content input[type="text"],
+        .manage-content input[type="email"],
+        .manage-content input[type="password"],
+        .manage-content select {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        .manage-content input:focus {
+            background: #fff;
+            border-color: #000;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+        }
 </style>
 
 <div class="manage-bg">
     <div class="manage-card">
 
-        <div class="manage-title">
-            QUẢN LÝ TÀI KHOẢN
+        <div class="header-section">
+            <span class="header-icon">👤</span>
+            <div class="manage-title">Quản lý tài khoản</div>
         </div>
 
         <div class="manage-subtitle">
-            Thay đổi thông tin và cài đặt bảo mật
+            Cập nhật thông tin cá nhân và thiết lập chế độ bảo mật cho tài khoản của bạn
         </div>
 
         <div class="manage-divider"></div>

@@ -215,16 +215,16 @@
             <nav class="menu">
 
                 <!-- PUBLIC -->
-                <a class="@(Context.Request.Path == "/" || Context.Request.Path.Value?.StartsWith("/Product/Index") == true ? "active" : "")"
-                   href="/Product/Index">HOME</a>
+                <a class="@(Context.Request.Path == "/" || Context.Request.Path.Value?.StartsWith("/Home/Welcome") == true ? "active" : "")"
+                   href="/Home/Welcome">HOME</a>
                 <span class="sep">|</span>
 
                 <a class="@(Context.Request.Path.Value?.StartsWith("/Product/Menu") == true ? "active" : "")"
                    href="/Product/Search">MENU</a>
                 <span class="sep">|</span>
 
-                <a class="@(Context.Request.Path.Value?.StartsWith("/Contact") == true ? "active" : "")"
-                   href="/Contact">CONTACT</a>
+                <a class="@(Context.Request.Path.Value?.StartsWith("/Home/Contact") == true ? "active" : "")"
+                   href="/Home/Contact">CONTACT</a>
                 <span class="sep">|</span>
 
                 

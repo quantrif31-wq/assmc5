@@ -1,28 +1,124 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Profile";
+    ViewData["Title"] = "Hồ sơ cá nhân";
     ViewData["ActivePage"] = ManageNavPages.Index;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="profile-form" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-            <div class="form-floating mb-3">
-                <input asp-for="Username" class="form-control" placeholder="Please choose your username." disabled />
-                <label asp-for="Username" class="form-label"></label>
+<style>
+    /* Container giới hạn độ rộng form để trông cân đối hơn */
+    .profile-manage-container {
+        max-width: 500px;
+    }
+
+    /* Tiêu đề phụ đồng bộ font 850 chuẩn ảnh mẫu */
+    .content-header-title {
+        font-weight: 850;
+        font-size: 24px;
+        color: #1a1a1a;
+        margin-bottom: 25px;
+        letter-spacing: -0.5px;
+    }
+
+    /* Group chứa Input và Label */
+    .glass-input-group {
+        margin-bottom: 20px;
+    }
+
+        .glass-input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: rgba(0,0,0,0.4);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+    /* Input kính mờ phong cách hiện đại */
+    .glass-control {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+        /* Hiệu ứng cho input bị vô hiệu hóa */
+        .glass-control:disabled {
+            background: rgba(0, 0, 0, 0.03);
+            color: rgba(0, 0, 0, 0.4);
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        .glass-control:focus:not(:disabled) {
+            background: #fff;
+            border-color: #000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+    /* Nút Lưu đen đặc (Ink style) */
+    .btn-save-ink {
+        width: 100%;
+        padding: 15px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+        .btn-save-ink:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    /* Validation text */
+    .text-danger-custom {
+        color: #dc3545;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+
+<div class="profile-manage-container">
+    <h3 class="content-header-title">@ViewData["Title"]</h3>
+
+    <partial name="_StatusMessage" for="StatusMessage" />
+
+    <form id="profile-form" method="post">
+        <div asp-validation-summary="ModelOnly" class="text-danger-custom" role="alert"></div>
+
+        <div class="glass-input-group">
+            <label asp-for="Username">Tên đăng nhập</label>
+            <input asp-for="Username" class="glass-control" placeholder="Tên người dùng của bạn" disabled />
+            <div style="font-size: 11px; color: rgba(0,0,0,0.4); margin-top: 4px; font-style: italic;">
+                * Tên đăng nhập không thể thay đổi.
             </div>
-            <div class="form-floating mb-3">
-                <input asp-for="Input.PhoneNumber" class="form-control" placeholder="Please enter your phone number."/>
-                <label asp-for="Input.PhoneNumber" class="form-label"></label>
-                <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
-            </div>
-            <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
-        </form>
-    </div>
+        </div>
+
+        <div class="glass-input-group">
+            <label asp-for="Input.PhoneNumber">Số điện thoại</label>
+            <input asp-for="Input.PhoneNumber" class="glass-control" placeholder="Nhập số điện thoại mới..." />
+            <span asp-validation-for="Input.PhoneNumber" class="text-danger-custom"></span>
+        </div>
+
+        <button id="update-profile-button" type="submit" class="btn-save-ink">
+            Lưu thay đổi
+        </button>
+    </form>
 </div>
 
 @section Scripts {

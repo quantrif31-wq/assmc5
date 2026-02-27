@@ -1,144 +1,181 @@
 ﻿@page
 @model ExternalLoginsModel
 @{
-    ViewData["Title"] = "External Logins";
+    ViewData["Title"] = "Liên kết tài khoản";
     ViewData["ActivePage"] = ManageNavPages.ExternalLogins;
 }
 
 <style>
-    @@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap');
-
-    body {
-        margin: 0;
-        font-family: 'Montserrat', sans-serif;
-        background: #f6f5ef;
+    /* 1. Tiêu đề chuẩn font 850 và Icon đồng bộ */
+    .header-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 5px;
     }
 
-    .ext-bg {
-        min-height: 100vh;
-        background: repeating-radial-gradient( circle at 0 0, rgba(0,0,0,0.03) 0, rgba(0,0,0,0.03) 40px, transparent 40px, transparent 80px );
+    .header-icon {
+        font-size: 26px;
         display: flex;
-        justify-content: center;
         align-items: center;
     }
 
-    .ext-card {
-        background: #fbfaf4;
-        border-radius: 22px;
-        padding: 40px 45px;
-        width: 520px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+    .content-header-title {
+        font-weight: 850;
+        font-size: 28px;
+        color: #1a1a1a;
+        margin: 0;
+        letter-spacing: -0.5px;
     }
 
-    .ext-title {
-        text-align: center;
-        font-weight: 600;
-        letter-spacing: 4px;
-        font-size: 24px;
-        color: #9a9a95;
+    .manage-subtitle {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
         margin-bottom: 30px;
+        font-weight: 600;
+        display: block;
     }
 
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 25px;
+    /* 2. Danh sách các liên kết hiện có */
+    .login-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 35px;
     }
 
-        table td {
-            padding: 12px 8px;
-            font-size: 14px;
-            color: #555;
-            border-bottom: 1px solid #e5e5e0;
+    .login-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+
+        .login-item:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
         }
 
-    .btn-soft {
-        border-radius: 12px;
-        background: #b9b9b4;
+    .provider-name {
+        font-weight: 700;
+        color: #2c2c2c;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* 3. Nút Gỡ liên kết (Soft Gray) */
+    .btn-remove-glass {
+        padding: 8px 16px;
+        background: rgba(0, 0, 0, 0.05);
         border: none;
-        color: white;
-        padding: 8px 14px;
-        font-size: 13px;
+        border-radius: 10px;
+        color: #666;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-remove-glass:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+    /* 4. Phần thêm liên kết mới */
+    .add-auth-section {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .add-title {
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 15px;
         letter-spacing: 1px;
     }
 
-        .btn-soft:hover {
-            background: #a8a8a3;
-        }
-
-    .add-title {
+    /* 5. Nút liên kết mới (Ink Style) */
+    .btn-link-ink {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        padding: 14px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
         font-size: 14px;
-        font-weight: 500;
-        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
         margin-bottom: 10px;
     }
 
-    .external-btn {
-        width: 100%;
-        margin-top: 10px;
-        border-radius: 12px;
-        background: #333;
-        color: #fff;
-        border: none;
-        padding: 10px;
-        font-size: 13px;
-        letter-spacing: 1px;
-    }
-
-        .external-btn:hover {
-            background: #111;
+        .btn-link-ink:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 </style>
 
-<div class="ext-bg">
-    <div class="ext-card">
+<div class="ext-manage-container">
+    <div class="header-section">
+        <span class="header-icon">🌐</span>
+        <h3 class="content-header-title">@ViewData["Title"]</h3>
+    </div>
+    <span class="manage-subtitle">Quản lý các dịch vụ bên thứ ba dùng để đăng nhập vào tài khoản của bạn</span>
 
-        <div class="ext-title">LIÊN KẾT TÀI KHOẢN</div>
+    <partial name="_StatusMessage" for="StatusMessage" />
 
-        <partial name="_StatusMessage" for="StatusMessage" />
-
-        @if (Model.CurrentLogins?.Count > 0)
-        {
-            <table>
-                <tbody>
-                    @foreach (var login in Model.CurrentLogins)
+    @if (Model.CurrentLogins?.Count > 0)
+    {
+        <div class="add-title">Tài khoản đã liên kết</div>
+        <div class="login-list">
+            @foreach (var login in Model.CurrentLogins)
+            {
+                <div class="login-item">
+                    <div class="provider-name">
+                        <span>🔑</span> @login.ProviderDisplayName
+                    </div>
+                    @if (Model.ShowRemoveButton)
                     {
-                        <tr>
-                            <td>@login.ProviderDisplayName</td>
-                            <td style="text-align:right">
-                                @if (Model.ShowRemoveButton)
-                                {
-                                    <form asp-page-handler="RemoveLogin" method="post">
-                                        <input asp-for="@login.LoginProvider" name="LoginProvider" type="hidden" />
-                                        <input asp-for="@login.ProviderKey" name="ProviderKey" type="hidden" />
-                                        <button type="submit" class="btn-soft">
-                                            REMOVE
-                                        </button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
+                        <form asp-page-handler="RemoveLogin" method="post">
+                            <input asp-for="@login.LoginProvider" name="LoginProvider" type="hidden" />
+                            <input asp-for="@login.ProviderKey" name="ProviderKey" type="hidden" />
+                            <button type="submit" class="btn-remove-glass">
+                                Gỡ bỏ
+                            </button>
+                        </form>
                     }
-                </tbody>
-            </table>
-        }
+                </div>
+            }
+        </div>
+    }
 
-        @if (Model.OtherLogins?.Count > 0)
-        {
-            <div class="add-title">Thêm phương thức đăng nhập</div>
-
-            <form asp-page-handler="LinkLogin" method="post">
+    @if (Model.OtherLogins?.Count > 0)
+    {
+        <div class="add-auth-section">
+            <div class="add-title">Thêm liên kết mới</div>
+            <form id="link-login-form" asp-page-handler="LinkLogin" method="post">
                 @foreach (var provider in Model.OtherLogins)
                 {
-                    <button type="submit"
-                            class="external-btn"
-                            name="provider"
-                            value="@provider.Name">
-                        LIÊN KẾT @provider.DisplayName
+                    <button type="submit" class="btn-link-ink" name="provider" value="@provider.Name">
+                        <span>🔗</span> LIÊN KẾT VỚI @provider.DisplayName.ToUpper()
                     </button>
                 }
             </form>
-        }
-
-    </div>
+        </div>
+    }
 </div>

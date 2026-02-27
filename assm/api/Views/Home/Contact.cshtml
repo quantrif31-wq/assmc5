@@ -1,0 +1,212 @@
+﻿
+@model lab4.Views.Home.ContactModel
+@{
+    ViewData["Title"] = "Liên hệ";
+}
+
+<style>
+    /* 1. Container chính với hiệu ứng kính mờ đặc trưng */
+    .contact-glass-wrap {
+        width: min(900px, calc(100% - 40px));
+        margin: 60px auto;
+        padding: 50px;
+        background: rgba(255, 255, 255, 0.45);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.05);
+    }
+
+    /* 2. Tiêu đề chuẩn font 850 và Icon đồng bộ */
+    .header-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 5px;
+    }
+
+    .header-icon {
+        font-size: 30px;
+        display: flex;
+        align-items: center;
+    }
+
+    .contact-title {
+        font-weight: 850;
+        font-size: 32px;
+        color: #1a1a1a;
+        margin: 0;
+        letter-spacing: -1px;
+    }
+
+    .contact-subtitle {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 40px;
+        font-weight: 600;
+        display: block;
+    }
+
+    /* 3. Bố cục chia hai cột: Thông tin & Form */
+    .contact-layout {
+        display: grid;
+        grid-template-columns: 1fr 1.5fr;
+        gap: 50px;
+    }
+
+    /* 4. Cột thông tin liên hệ */
+    .info-card {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-label {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(0, 0, 0, 0.4);
+    }
+
+    .info-value {
+        font-weight: 700;
+        color: #2c2c2c;
+        font-size: 15px;
+    }
+
+    /* 5. Form liên hệ */
+    .glass-input-group {
+        margin-bottom: 20px;
+    }
+
+        .glass-input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: rgba(0,0,0,0.4);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+    .glass-control {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        outline: none;
+        font-family: inherit;
+    }
+
+        .glass-control:focus {
+            background: #fff;
+            border-color: #000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+    textarea.glass-control {
+        resize: none;
+        min-height: 120px;
+    }
+
+    /* 6. Nút gửi Ink Style */
+    .btn-send-ink {
+        width: 100%;
+        padding: 16px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .btn-send-ink:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .contact-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .contact-glass-wrap {
+            padding: 30px;
+        }
+    }
+</style>
+
+<div class="contact-glass-wrap">
+    <div class="header-section">
+        <span class="header-icon">✉️</span>
+        <h1 class="contact-title">Liên hệ</h1>
+    </div>
+    <span class="contact-subtitle">Hãy để lại lời nhắn, chúng tôi sẽ phản hồi bạn sớm nhất có thể.</span>
+
+    <div class="contact-layout">
+        <div class="info-card">
+            <div class="info-item">
+                <span class="info-label">Địa chỉ</span>
+                <span class="info-value">123 Đường ABC, Quận 1, TP. Hồ Chí Minh</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">support@@yourdomain.com</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Điện thoại</span>
+                <span class="info-value">+84 123 456 789</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Giờ làm việc</span>
+                <span class="info-value">Thứ 2 - Thứ 6: 08:00 - 18:00</span>
+            </div>
+        </div>
+
+        <form id="contact-form" method="post">
+            <div class="glass-input-group">
+                <label>Họ và tên</label>
+                <input type="text" class="glass-control" placeholder="Nhập tên của bạn..." required />
+            </div>
+
+            <div class="glass-input-group">
+                <label>Địa chỉ Email</label>
+                <input type="email" class="glass-control" placeholder="example@@gmail.com" required />
+            </div>
+
+            <div class="glass-input-group">
+                <label>Lời nhắn</label>
+                <textarea class="glass-control" placeholder="Bạn đang nghĩ gì?"></textarea>
+            </div>
+
+            <button type="submit" class="btn-send-ink">
+                <span>🚀</span> GỬI LỜI NHẮN
+            </button>
+        </form>
+    </div>
+</div>
+
+@* Sparkle SVG trang trí đồng bộ *@
+<svg class="sparkle" viewBox="0 0 64 64" style="position: fixed; right: 40px; bottom: 40px; width: 60px; height: 60px; opacity: .08; pointer-events: none;">
+    <path fill="#000" d="M32 6l4.2 16.4L52 26.7 35.8 31 32 47 28.2 31 12 26.7l15.8-4.3z" />
+</svg>

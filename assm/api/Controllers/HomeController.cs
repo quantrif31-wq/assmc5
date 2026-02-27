@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Lab4.Models;
 
@@ -19,6 +19,12 @@ public class HomeController : Controller
     public IActionResult Privacy()
     {
         return View();
+    }
+    public IActionResult Contact()
+    {
+        // Bạn có thể truyền Model nếu cần, hoặc chỉ return View()
+        var model = new lab4.Views.Home.ContactModel();
+        return View(model);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

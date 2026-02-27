@@ -1,42 +1,186 @@
 ﻿@page
 @model EmailModel
 @{
-    ViewData["Title"] = "Manage Email";
+    ViewData["Title"] = "Quản lý Email";
     ViewData["ActivePage"] = ManageNavPages.Email;
 }
 
-<h3>@ViewData["Title"]</h3>
-<partial name="_StatusMessage" for="StatusMessage" />
-<div class="row">
-    <div class="col-md-6">
-        <form id="email-form" method="post">
-            <div asp-validation-summary="All" class="text-danger" role="alert"></div>
-            @if (Model.IsEmailConfirmed)
-            {
-                <div class="form-floating mb-3 input-group">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                        <div class="input-group-append">
-                            <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
-                        </div>
-                    <label asp-for="Email" class="form-label"></label>
-                </div>
-            }
-            else
-            {
-                <div class="form-floating mb-3">
-                    <input asp-for="Email" class="form-control" placeholder="Please enter your email." disabled />
-                    <label asp-for="Email" class="form-label"></label>
-                    <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn btn-link">Send verification email</button>
-                </div>
-            }
-            <div class="form-floating mb-3">
-                <input asp-for="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Please enter new email." />
-                <label asp-for="Input.NewEmail" class="form-label"></label>
-                <span asp-validation-for="Input.NewEmail" class="text-danger"></span>
-            </div>
-            <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="w-100 btn btn-lg btn-primary">Change email</button>
-        </form>
+<style>
+    /* 1. Container chính - cho phép nội dung tràn ra ngoài để hiện badge */
+    .email-manage-container {
+        max-width: 500px;
+        position: relative;
+    }
+
+    /* 2. Tiêu đề chuẩn font 850 và Icon đồng bộ hệ thống */
+    .header-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 5px;
+    }
+
+    .header-icon {
+        font-size: 26px;
+        display: flex;
+        align-items: center;
+    }
+
+    .content-header-title {
+        font-weight: 850;
+        font-size: 28px;
+        color: #1a1a1a;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+
+    .manage-subtitle {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 25px;
+        font-weight: 600;
+        display: block;
+    }
+
+    /* 3. Group chứa Input và Label */
+    .glass-input-group {
+        margin-bottom: 20px;
+        position: relative; /* Gốc tọa độ cho badge */
+    }
+
+        .glass-input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: rgba(0,0,0,0.4);
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+    /* 4. Input kính mờ */
+    .glass-control {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        outline: none;
+    }
+
+        .glass-control:disabled {
+            background: rgba(0, 0, 0, 0.03);
+            color: rgba(0, 0, 0, 0.4);
+            cursor: not-allowed;
+        }
+
+        .glass-control:focus:not(:disabled) {
+            background: #fff;
+            border-color: #000;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+    /* 5. Badge xác thực: Nằm ngoài input và cao ngang bằng nội dung email */
+    .verified-badge {
+        position: absolute;
+        left: calc(100% + 15px); /* Đẩy ra ngoài lề phải 15px */
+        bottom: 15px; /* Căn theo chiều cao của nội dung bên trong ô input */
+        color: #2e7d32;
+        font-weight: 800;
+        font-size: 14px;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+    }
+
+    /* 6. Nút bấm Ink Style đen đặc */
+    .btn-action-ink {
+        width: 100%;
+        padding: 15px;
+        background: #000;
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+        .btn-action-ink:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+    /* Link gửi lại mã xác nhận */
+    .btn-verify-link {
+        display: inline-block;
+        margin-top: 5px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #000;
+        text-decoration: underline;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    .text-danger-custom {
+        color: #dc3545;
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 5px;
+        display: block;
+    }
+</style>
+
+<div class="email-manage-container">
+    <div class="header-section">
+        <span class="header-icon">📧</span>
+        <h3 class="content-header-title">Quản lý Email</h3>
     </div>
+    <span class="manage-subtitle">Cập nhật và xác thực địa chỉ email liên kết với tài khoản</span>
+
+    <partial name="_StatusMessage" for="StatusMessage" />
+
+    <form id="email-form" method="post">
+        <div asp-validation-summary="All" class="text-danger-custom" role="alert"></div>
+
+        <div class="glass-input-group">
+            <label asp-for="Email">Email hiện tại</label>
+            <div style="position: relative;">
+                <input asp-for="Email" class="glass-control" placeholder="Email của bạn" disabled />
+
+                @if (Model.IsEmailConfirmed)
+                {
+                    <span class="verified-badge">✓ Đã xác minh</span>
+                }
+            </div>
+
+            @if (!Model.IsEmailConfirmed)
+            {
+                <button id="email-verification" type="submit" asp-page-handler="SendVerificationEmail" class="btn-verify-link">
+                    Gửi email xác minh
+                </button>
+            }
+        </div>
+
+        <div class="glass-input-group">
+            <label asp-for="Input.NewEmail">Email mới</label>
+            <input asp-for="Input.NewEmail" class="glass-control" autocomplete="email" aria-required="true" placeholder="Nhập địa chỉ email mới..." />
+            <span asp-validation-for="Input.NewEmail" class="text-danger-custom"></span>
+        </div>
+
+        <button id="change-email-button" type="submit" asp-page-handler="ChangeEmail" class="btn-action-ink">
+            Thay đổi Email
+        </button>
+    </form>
 </div>
 
 @section Scripts {
