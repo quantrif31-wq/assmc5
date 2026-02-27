@@ -137,6 +137,11 @@
             <strong>Địa chỉ:</strong> @Model.Address, @Model.City
         </div>
 
+        @if (!string.IsNullOrEmpty(Model.District))
+        {
+            <div><strong>Quận/Huyện:</strong> @Model.District</div>
+        }
+
         <div><strong>Thanh toán:</strong> @Model.PaymentMethod</div>
         <div><strong>Trạng thái:</strong> @Model.Status</div>
     </div>
@@ -167,6 +172,14 @@
             }
         </tbody>
         <tfoot>
+            <tr>
+                <td colspan="3" class="text-right" style="color: rgba(0,0,0,.5); font-size: 14px;">Tạm tính</td>
+                <td class="text-right" style="font-size: 14px;">@string.Format("{0:N0} ₫", Model.Subtotal)</td>
+            </tr>
+            <tr>
+                <td colspan="3" class="text-right" style="color: rgba(0,0,0,.5); font-size: 14px;">Phí vận chuyển (@(Model.District ?? "—"))</td>
+                <td class="text-right" style="font-size: 14px;">@string.Format("{0:N0} ₫", Model.ShippingFee)</td>
+            </tr>
             <tr class="order-total-row">
                 <td colspan="3" class="text-right">Tổng cộng</td>
                 <td class="text-right">
