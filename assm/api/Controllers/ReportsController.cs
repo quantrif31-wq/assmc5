@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace lab4.Controllers
 {
-    [Authorize(Roles = "StoreManager,Accountant")]
+    [Authorize(Policy = "ViewReports")] // StoreManager, Accountant hoặc claim Report.View
     public class ReportsController : Controller
     {
         private readonly ApplicationDbContext _context;

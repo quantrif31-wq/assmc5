@@ -1,3 +1,4 @@
+using lab4.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ namespace Lab4.Controllers
     [Authorize(Policy = "AdminViewProductPolicy")] // Sử dụng chính sách Admin từ Bài 2 [3]
     public class UserClaimsController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserClaimsController(UserManager<IdentityUser> userManager)
+        public UserClaimsController(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
@@ -42,8 +43,8 @@ namespace Lab4.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            // Thêm Claim mới (giá trị mặc định là "true") theo danh mục tài liệu [2, 3]
-            var result = await _userManager.AddClaimAsync(user, new Claim(claimType, "true"));
+            // Thêm Claim với Type = "Permission" và Value = tên quyền (matching policy system)
+            var result = await _userManager.AddClaimAsync(user, new Claim("Permission", claimType));
             
             if (result.Succeeded) return RedirectToAction(nameof(Manage), new { userId });
             return BadRequest("Lỗi khi thêm quyền.");

@@ -274,6 +274,7 @@
                                 User.HasClaim("Permission", "Product.Create") ||
                                 User.HasClaim("Permission", "Order.Manage") ||
                                 User.HasClaim("Permission", "Inventory.Manage") ||
+                                User.HasClaim("Permission", "Report.View") ||
                                 User.IsInRole("StoreManager") ||
                                 User.IsInRole("Accountant") ||
                                 User.IsInRole("KitchenStaff")
@@ -285,7 +286,7 @@
                         <ul class="dropdown-menu dropdown-menu-end shadow">
 
                             @* ===== BÁO CÁO & ADMIN (StoreManager + Accountant + Claims Admin.Access) ===== *@
-                            @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager") || User.IsInRole("Accountant"))
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Report.View") || User.IsInRole("StoreManager") || User.IsInRole("Accountant"))
                             {
                                 <li><a class="dropdown-item" href="/Reports/Index">📊 Báo cáo doanh thu</a></li>
                             }
@@ -293,31 +294,31 @@
                             @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager"))
                             {
                                 <li><a class="dropdown-item" href="/Suppliers/Index">🏭 Nhà cung cấp</a></li>
-                                <li><a class="dropdown-item" href="/Admin/Index">👑 Quản trị hệ thống</a></li>
+                                <li><a class="dropdown-item" href="/Admin/Index">👤 Quản lý tài khoản</a></li>
                             }
 
-                            @* ===== SẢN PHẨM (StoreManager + Claims Product.Create) ===== *@
-                            @if (User.HasClaim("Permission", "Product.Create") || User.IsInRole("StoreManager"))
+                            @* ===== SẢN PHẨM (StoreManager + Claims Product.Create + Admin.Access) ===== *@
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Product.Create") || User.IsInRole("StoreManager"))
                             {
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/Product/QL_SP">📦 Quản lý sản phẩm</a></li>
                                 <li><a class="dropdown-item" href="/PriceManagement/Index">💲 Quản lý giá</a></li>
                             }
 
-                            @* ===== ĐƠN HÀNG (StoreManager + Accountant + KitchenStaff + Claims Order.Manage) ===== *@
-                            @if (User.HasClaim("Permission", "Order.Manage") || User.IsInRole("StoreManager") || User.IsInRole("Accountant") || User.IsInRole("KitchenStaff"))
+                            @* ===== ĐƠN HÀNG (StoreManager + Accountant + KitchenStaff + Claims Order.Manage + Admin.Access) ===== *@
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Order.Manage") || User.HasClaim("Permission", "Report.View") || User.IsInRole("StoreManager") || User.IsInRole("Accountant") || User.IsInRole("KitchenStaff"))
                             {
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/Orders/Index">📝 Đơn hàng</a></li>
                             }
 
-                            @if (User.HasClaim("Permission", "Order.Manage") || User.IsInRole("StoreManager"))
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Order.Manage") || User.IsInRole("StoreManager"))
                             {
                                 <li><a class="dropdown-item" href="/PurchaseOrders/Index">🧾 Đơn mua hàng</a></li>
                             }
 
-                            @* ===== TỒN KHO (StoreManager + Claims Inventory.Manage) ===== *@
-                            @if (User.HasClaim("Permission", "Inventory.Manage") || User.IsInRole("StoreManager"))
+                            @* ===== TỒN KHO (StoreManager + Claims Inventory.Manage + Admin.Access) ===== *@
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Inventory.Manage") || User.IsInRole("StoreManager"))
                             {
                                 <li><hr class="dropdown-divider" /></li>
                                 <li><a class="dropdown-item" href="/Inventory/Index">📊 Tồn kho</a></li>

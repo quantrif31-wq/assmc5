@@ -50,20 +50,51 @@ builder.Services.Configure<Lab4.Models.VnPayConfig>(
     builder.Configuration.GetSection("VnPay"));
 builder.Services.AddScoped<Lab4.Services.IVnPayService, Lab4.Services.VnPayService>();
 
-// Cấu hình Claims-Based Authorization [1], [4]
+// Cấu hình Authorization kết hợp Role + Claim
+// Admin.Access = full quyền (bao gồm tất cả chức năng)
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("AdminOnly",
-        p => p.RequireClaim("Permission", "Admin.Access"));
+    // Admin: role StoreManager HOẶC claim Admin.Access
+    options.AddPolicy("AdminOnly", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.HasClaim("Permission", "Admin.Access")));
 
-    options.AddPolicy("ManageProduct",
-        p => p.RequireClaim("Permission", "Product.Create"));
+    // Sản phẩm: role StoreManager HOẶC claim Product.Create HOẶC Admin.Access (full)
+    options.AddPolicy("ManageProduct", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.HasClaim("Permission", "Admin.Access") ||
+            ctx.User.HasClaim("Permission", "Product.Create")));
 
-    options.AddPolicy("ManageInventory",
-        p => p.RequireClaim("Permission", "Inventory.Manage"));
+    // Kho: role StoreManager HOẶC claim Inventory.Manage HOẶC Admin.Access (full)
+    options.AddPolicy("ManageInventory", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.HasClaim("Permission", "Admin.Access") ||
+            ctx.User.HasClaim("Permission", "Inventory.Manage")));
 
-    options.AddPolicy("ManageOrder",
-        p => p.RequireClaim("Permission", "Order.Manage"));
+    // Đơn hàng: role StoreManager/KitchenStaff HOẶC claim Order.Manage HOẶC Admin.Access (full)
+    options.AddPolicy("ManageOrder", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.IsInRole("KitchenStaff") ||
+            ctx.User.HasClaim("Permission", "Admin.Access") ||
+            ctx.User.HasClaim("Permission", "Order.Manage")));
+
+    // Báo cáo: role StoreManager/Accountant HOẶC claim Report.View HOẶC Admin.Access (full)
+    options.AddPolicy("ViewReports", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.IsInRole("Accountant") ||
+            ctx.User.HasClaim("Permission", "Admin.Access") ||
+            ctx.User.HasClaim("Permission", "Report.View")));
+
+    // Policy cho UserClaimsController (giống AdminOnly)
+    options.AddPolicy("AdminViewProductPolicy", p =>
+        p.RequireAssertion(ctx =>
+            ctx.User.IsInRole("StoreManager") ||
+            ctx.User.HasClaim("Permission", "Admin.Access")));
 });
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -185,6 +216,22 @@ using (var scope = app.Services.CreateScope())
             new() { OrderId=orders[11].Id, ProductId=4, ProductName="Mỳ Quảng",         UnitPrice=50000, Quantity=1, LineTotal=50000 },
         };
         db.OrderItems.AddRange(items);
+        db.SaveChanges();
+    }
+
+    // ===== SEED SAMPLE SUPPLIERS =====
+    if (!db.Set<lab4.Models.Supplier>().Any())
+    {
+        var suppliers = new List<lab4.Models.Supplier>
+        {
+            new() { Code = "NCC01", Name = "Công ty TNHH Thực phẩm Sài Gòn",     Phone = "028-3822-1100", Email = "contact@tpsaigon.vn",     Rating = 5, DefaultDiscount = 5,  IsActive = true },
+            new() { Code = "NCC02", Name = "Nông trại Hữu cơ Đà Lạt",            Phone = "0263-382-5566", Email = "info@dalat-organic.vn",    Rating = 4, DefaultDiscount = 3,  IsActive = true },
+            new() { Code = "NCC03", Name = "Công ty CP Hải sản Nha Trang",        Phone = "0258-352-1234", Email = "sales@nhatrang-seafood.vn",Rating = 4, DefaultDiscount = 4,  IsActive = true },
+            new() { Code = "NCC04", Name = "Cơ sở Gia vị Phú Quốc",              Phone = "0297-384-6789", Email = "giavi@phuquoc-spice.vn",   Rating = 5, DefaultDiscount = 2,  IsActive = true },
+            new() { Code = "NCC05", Name = "Công ty TNHH Thịt sạch Vissan",      Phone = "028-3855-2277", Email = "order@vissan.com.vn",      Rating = 4, DefaultDiscount = 3,  IsActive = true },
+            new() { Code = "NCC06", Name = "HTX Rau sạch Củ Chi",                Phone = "028-3794-0088", Email = "rausach@cuchi-farm.vn",     Rating = 3, DefaultDiscount = 5,  IsActive = true },
+        };
+        db.Set<lab4.Models.Supplier>().AddRange(suppliers);
         db.SaveChanges();
     }
 }

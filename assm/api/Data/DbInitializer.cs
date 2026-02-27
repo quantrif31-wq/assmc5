@@ -11,8 +11,10 @@ namespace Lab4.Data
             async Task EnsureUser(string email, string password, params string[] permissions)
             {
                 var user = await userManager.FindByEmailAsync(email);
+                bool isNew = false;
                 if (user == null)
                 {
+                    isNew = true;
                     user = new ApplicationUser
                     {
                         UserName = email,
@@ -22,11 +24,14 @@ namespace Lab4.Data
                     await userManager.CreateAsync(user, password);
                 }
 
-                var claims = await userManager.GetClaimsAsync(user);
-                foreach (var p in permissions)
+                // Chỉ gán quyền mặc định khi tạo user MỚI
+                // Nếu user đã tồn tại → giữ nguyên quyền đã được admin chỉnh sửa
+                if (isNew)
                 {
-                    if (!claims.Any(c => c.Type == "Permission" && c.Value == p))
+                    foreach (var p in permissions)
+                    {
                         await userManager.AddClaimAsync(user, new Claim("Permission", p));
+                    }
                 }
             }
 
@@ -79,10 +84,36 @@ namespace Lab4.Data
                 "Order.Manage"
             );
 
-            // Tạo các User mẫu cho từng Role
+            // Tạo các User mẫu cho từng Role + gán Permission claims tương ứng
             await EnsureUserWithRole("manager@poly.edu.vn", "Manager@123", "StoreManager");
             await EnsureUserWithRole("accountant@poly.edu.vn", "Accountant@123", "Accountant");
             await EnsureUserWithRole("kitchen@poly.edu.vn", "Kitchen@123", "KitchenStaff");
+
+            // Gán Permission claims cho các user có role
+            // Manager: tất cả quyền
+            await EnsureUser(
+                "manager@poly.edu.vn",
+                "Manager@123",
+                "Admin.Access",
+                "Product.Create",
+                "Inventory.Manage",
+                "Order.Manage",
+                "Report.View"
+            );
+
+            // Accountant: xem báo cáo
+            await EnsureUser(
+                "accountant@poly.edu.vn",
+                "Accountant@123",
+                "Report.View"
+            );
+
+            // Kitchen: quản lý đơn hàng
+            await EnsureUser(
+                "kitchen@poly.edu.vn",
+                "Kitchen@123",
+                "Order.Manage"
+            );
         }
     }
 }

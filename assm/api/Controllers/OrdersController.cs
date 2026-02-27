@@ -39,7 +39,7 @@ namespace lab4.Controllers
 
         // Cập nhật trạng thái
         [HttpPost]
-        [Authorize(Roles = "StoreManager,KitchenStaff")] // Kế toán không được phép đổi trạng thái
+        [Authorize(Policy = "ManageOrder")] // StoreManager, KitchenStaff hoặc claim Order.Manage
         public async Task<IActionResult> UpdateStatus(int id, string status)
         {
             var order = await _context.Orders.FindAsync(id);
@@ -47,26 +47,37 @@ namespace lab4.Controllers
             if (order == null)
                 return NotFound();
 
-            // Logic State Machine: Chỉ cho phép trạng thái tiến lên
-            bool isValidTransition = false;
+            // Admin (StoreManager hoặc Admin.Access) → được phép chuyển trạng thái TỰ DO (kể cả lùi)
+            bool isAdmin = User.IsInRole("StoreManager") ||
+                           User.HasClaim("Permission", "Admin.Access");
 
-            if (order.Status == "Pending" && (status == "Preparing" || status == "Cancelled"))
+            if (isAdmin)
             {
-                isValidTransition = true;
+                // Admin chỉ cần status hợp lệ trong danh sách
+                var validStatuses = new[] { "Pending", "Preparing", "Delivering", "Done", "Cancelled" };
+                if (!validStatuses.Contains(status))
+                {
+                    TempData["ErrorMessage"] = "Trạng thái không hợp lệ!";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
             }
-            else if (order.Status == "Preparing" && status == "Delivering")
+            else
             {
-                isValidTransition = true;
-            }
-            else if (order.Status == "Delivering" && status == "Done")
-            {
-                isValidTransition = true;
-            }
+                // Staff (KitchenStaff, Order.Manage): Chỉ cho phép trạng thái TIẾN LÊN
+                bool isValidTransition = false;
 
-            if (!isValidTransition)
-            {
-                TempData["ErrorMessage"] = "Chuyển trạng thái không hợp lệ! Không thể lùi trạng thái đơn hàng.";
-                return RedirectToAction(nameof(Details), new { id });
+                if (order.Status == "Pending" && (status == "Preparing" || status == "Cancelled"))
+                    isValidTransition = true;
+                else if (order.Status == "Preparing" && status == "Delivering")
+                    isValidTransition = true;
+                else if (order.Status == "Delivering" && status == "Done")
+                    isValidTransition = true;
+
+                if (!isValidTransition)
+                {
+                    TempData["ErrorMessage"] = "Chuyển trạng thái không hợp lệ! Nhân viên không thể lùi trạng thái đơn hàng.";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
             }
 
             order.Status = status;

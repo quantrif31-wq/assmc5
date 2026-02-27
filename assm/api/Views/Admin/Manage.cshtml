@@ -151,23 +151,43 @@
         @{
             var availablePermissions = (ViewBag.AllPermissions as List<string>) ?? new List<string>();
             var hasNewPerms = false;
+            var hasAdminAccess = Model.Claims.Any(c => c.Type == "Permission" && c.Value == "Admin.Access");
+            var hasAnySpecific = Model.Claims.Any(c => c.Type == "Permission" && c.Value != "Admin.Access");
 
             foreach (var p in availablePermissions)
             {
-                if (!Model.Claims.Any(c => c.Type == "Permission" && c.Value == p))
-                {
-                    hasNewPerms = true;
-                    <form method="post" asp-action="AddPermission" class="d-inline">
-                        <input type="hidden" name="userId" value="@Model.User.Id" />
-                        <input type="hidden" name="permission" value="@p" />
-                        <button type="submit" class="btn-add-perm">+ @p</button>
-                    </form>
-                }
+                // Đã có quyền này → bỏ qua
+                if (Model.Claims.Any(c => c.Type == "Permission" && c.Value == p))
+                    continue;
+
+                // Quy tắc ẩn/hiện:
+                // 1. Nếu đã có Admin.Access → ẩn TẤT CẢ quyền khác (vì Admin = toàn quyền)
+                if (hasAdminAccess && p != "Admin.Access")
+                    continue;
+
+                // 2. Nếu đã có bất kỳ quyền cụ thể nào → ẩn Admin.Access
+                //    (dùng quyền chi tiết thì không cần toàn quyền)
+                if (hasAnySpecific && p == "Admin.Access")
+                    continue;
+
+                hasNewPerms = true;
+                <form method="post" asp-action="AddPermission" class="d-inline">
+                    <input type="hidden" name="userId" value="@Model.User.Id" />
+                    <input type="hidden" name="permission" value="@p" />
+                    <button type="submit" class="btn-add-perm">+ @p</button>
+                </form>
             }
 
             if (!hasNewPerms)
             {
-                <span class="no-data">Tài khoản này đã sở hữu tất cả các quyền hiện có.</span>
+                if (hasAdminAccess)
+                {
+                    <span class="no-data">🔑 Admin.Access = Toàn quyền — không cần thêm quyền khác.</span>
+                }
+                else
+                {
+                    <span class="no-data">Tài khoản này đã sở hữu tất cả các quyền khả dụng.</span>
+                }
             }
         }
     </div>

@@ -7,7 +7,7 @@ namespace lab4.Controllers
 {
    
 
-    [Authorize(Roles = "StoreManager")] // bắt buộc login & quyền StoreManager
+    [Authorize(Policy = "AdminOnly")] // bắt buộc login & quyền StoreManager hoặc claim Admin.Access
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -41,7 +41,8 @@ namespace lab4.Controllers
             "Admin.Access",
             "Product.Create",
             "Order.Manage",
-            "Inventory.Manage"
+            "Inventory.Manage",
+            "Report.View"
         };
 
             return View((user, claims));
@@ -91,6 +92,67 @@ namespace lab4.Controllers
             {
                 // lock vĩnh viễn
                 await _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        // =========================
+        // EDIT USER
+        // =========================
+        public async Task<IActionResult> Edit(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+            return View(user);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(string id, string fullName, string email, string phoneNumber, string address)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            user.FullName = fullName;
+            user.Email = email;
+            user.UserName = email; // UserName = Email
+            user.NormalizedEmail = email.ToUpper();
+            user.NormalizedUserName = email.ToUpper();
+            user.PhoneNumber = phoneNumber;
+            user.Address = address;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Cập nhật tài khoản thành công!";
+                return RedirectToAction("Index");
+            }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError("", error.Description);
+
+            return View(user);
+        }
+
+        // =========================
+        // DELETE USER
+        // =========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Đã xoá tài khoản thành công!";
+            }
+            else
+            {
+                TempData["Error"] = "Lỗi khi xoá tài khoản.";
             }
 
             return RedirectToAction("Index");

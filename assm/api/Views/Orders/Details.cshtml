@@ -186,43 +186,73 @@
         <div class="card p-3 mb-3 shadow-sm border-0">
             <h5 class="fw-bold mb-3"><i class="bi bi-gear"></i> Trạng Thái</h5>
             
-            @if (User.IsInRole("StoreManager") || User.IsInRole("KitchenStaff"))
+            @if (User.IsInRole("StoreManager") || User.IsInRole("KitchenStaff") 
+                || User.HasClaim("Permission", "Order.Manage") || User.HasClaim("Permission", "Admin.Access"))
             {
+                @* Kiểm tra Admin (StoreManager hoặc Admin.Access) *@
+                var isAdmin = User.IsInRole("StoreManager") || User.HasClaim("Permission", "Admin.Access");
+
                 <form asp-action="UpdateStatus" method="post" class="d-flex flex-column gap-2">
                     <input type="hidden" name="id" value="@Model.Id" />
                     <select name="status" class="form-select border-2" required>
-                        <!-- Trạng thái hiện tại luôn hiển thị, bị disable để nhìn -->
-                        @if (Model.Status == "Pending")
+
+                        @if (isAdmin)
                         {
-                            <option value="Pending" selected disabled>Đang chờ (Pending)</option>
-                            <option value="Preparing"> Chuẩn bị & Nấu (Preparing)</option>
-                            <option value="Cancelled"> Hủy đơn hàng (Cancelled)</option>
+                            @* ADMIN: Hiển thị TẤT CẢ trạng thái, cho phép chuyển tự do *@
+                            <option value="" disabled selected>— Chọn trạng thái —</option>
+                            @foreach (var s in new[] { "Pending", "Preparing", "Delivering", "Done", "Cancelled" })
+                            {
+                                if (s != Model.Status)
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            }
                         }
-                        else if (Model.Status == "Preparing")
+                        else
                         {
-                            <option value="Preparing" selected disabled>Đang chuẩn bị (Preparing)</option>
-                            <option value="Delivering"> Bắt đầu giao (Delivering)</option>
-                        }
-                        else if (Model.Status == "Delivering")
-                        {
-                            <option value="Delivering" selected disabled>Đang giao (Delivering)</option>
-                            <option value="Done"> Hoàn thành (Done)</option>
-                        }
-                        else if (Model.Status == "Done")
-                        {
-                            <option value="Done" selected disabled>Đã hoàn thành</option>
-                        }
-                        else if (Model.Status == "Cancelled")
-                        {
-                            <option value="Cancelled" selected disabled>Đã hủy</option>
+                            @* STAFF: Chỉ hiển thị trạng thái TIẾN LÊN *@
+                            if (Model.Status == "Pending")
+                            {
+                                <option value="Pending" selected disabled>Đang chờ (Pending)</option>
+                                <option value="Preparing"> Chuẩn bị & Nấu (Preparing)</option>
+                                <option value="Cancelled"> Hủy đơn hàng (Cancelled)</option>
+                            }
+                            else if (Model.Status == "Preparing")
+                            {
+                                <option value="Preparing" selected disabled>Đang chuẩn bị (Preparing)</option>
+                                <option value="Delivering"> Bắt đầu giao (Delivering)</option>
+                            }
+                            else if (Model.Status == "Delivering")
+                            {
+                                <option value="Delivering" selected disabled>Đang giao (Delivering)</option>
+                                <option value="Done"> Hoàn thành (Done)</option>
+                            }
+                            else if (Model.Status == "Done")
+                            {
+                                <option value="Done" selected disabled>Đã hoàn thành</option>
+                            }
+                            else if (Model.Status == "Cancelled")
+                            {
+                                <option value="Cancelled" selected disabled>Đã hủy</option>
+                            }
                         }
                     </select>
 
-                    <button type="submit" class="btn btn-primary fw-bold" 
-                            @(Model.Status == "Done" || Model.Status == "Cancelled" ? "disabled" : "")>
-                        Cập Nhật
-                    </button>
-                    <small class="text-muted mt-1">*Chỉ có thể đổi sang bước tiếp theo, không thể lùi lại.</small>
+                    @if (isAdmin)
+                    {
+                        <button type="submit" class="btn btn-primary fw-bold">
+                            Cập Nhật (Admin)
+                        </button>
+                        <small class="text-muted mt-1">*Admin có thể chuyển trạng thái tự do.</small>
+                    }
+                    else
+                    {
+                        <button type="submit" class="btn btn-primary fw-bold"
+                                @(Model.Status == "Done" || Model.Status == "Cancelled" ? "disabled" : "")>
+                            Cập Nhật
+                        </button>
+                        <small class="text-muted mt-1">*Chỉ có thể đổi sang bước tiếp theo, không thể lùi lại.</small>
+                    }
                 </form>
             }
             else
