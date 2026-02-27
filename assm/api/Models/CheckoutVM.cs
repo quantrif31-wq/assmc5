@@ -22,6 +22,9 @@ namespace Lab4.Models
         [StringLength(80)]
         public string City { get; set; } = "";
 
+        // ===== QUẬN/HUYỆN + PHÍ SHIP =====
+        public int DistrictId { get; set; }
+
         [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
         [StringLength(120)]
         public string? Email { get; set; }
@@ -39,11 +42,13 @@ namespace Lab4.Models
 
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
+        public decimal ShippingFee { get; set; }
         public decimal Total { get; set; }
 
         public string Currency { get; set; } = "VND";
         public string SubtotalText { get; set; } = "0";
         public string TaxText { get; set; } = "0";
+        public string ShippingFeeText { get; set; } = "0";
         public string TotalText { get; set; } = "0";
     }
 
