@@ -4,6 +4,7 @@ using Lab4.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace lab4.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225031032_AddUniqueCartSessionIndex")]
+    partial class AddUniqueCartSessionIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,55 +24,6 @@ namespace lab4.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Lab4.Models.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("NewValue")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("OldValue")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("PerformedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("PerformedBy")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AuditLogs");
-                });
 
             modelBuilder.Entity("Lab4.Models.Cart", b =>
                 {
@@ -131,51 +85,6 @@ namespace lab4.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("CartItems");
-                });
-
-            modelBuilder.Entity("Lab4.Models.Combo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("PriceVnd")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Combos");
-                });
-
-            modelBuilder.Entity("Lab4.Models.ComboItem", b =>
-                {
-                    b.Property<int>("ComboId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ComboId", "ProductId");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("ComboItems");
                 });
 
             modelBuilder.Entity("Lab4.Models.Inventory", b =>
@@ -946,25 +855,6 @@ namespace lab4.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("Lab4.Models.ComboItem", b =>
-                {
-                    b.HasOne("Lab4.Models.Combo", "Combo")
-                        .WithMany("ComboItems")
-                        .HasForeignKey("ComboId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Lab4.Models.Product", "Product")
-                        .WithMany("ComboItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Combo");
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("Lab4.Models.Inventory", b =>
                 {
                     b.HasOne("Lab4.Models.Product", "Product")
@@ -1144,11 +1034,6 @@ namespace lab4.Migrations
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("Lab4.Models.Combo", b =>
-                {
-                    b.Navigation("ComboItems");
-                });
-
             modelBuilder.Entity("Lab4.Models.Order", b =>
                 {
                     b.Navigation("Items");
@@ -1156,8 +1041,6 @@ namespace lab4.Migrations
 
             modelBuilder.Entity("Lab4.Models.Product", b =>
                 {
-                    b.Navigation("ComboItems");
-
                     b.Navigation("Inventory");
 
                     b.Navigation("SupplierProducts");

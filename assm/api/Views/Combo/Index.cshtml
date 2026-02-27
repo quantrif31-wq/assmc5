@@ -1,0 +1,39 @@
+﻿@model List<Lab4.Models.Combo>
+
+<h2 class="mb-4">Combo hôm nay 🔥</h2>
+
+<div class="row">
+    @foreach (var combo in Model)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+
+                @if (!string.IsNullOrEmpty(combo.ImageUrl))
+                {
+                    <img src="@combo.ImageUrl"
+                         class="card-img-top"
+                         style="height:200px; object-fit:cover;" />
+                }
+
+                <div class="card-body">
+                    <h5 class="card-title">@combo.Name</h5>
+                    <p class="card-text">@combo.Description</p>
+
+                    <h6 class="text-danger fw-bold">
+                        @combo.PriceVnd.ToString("N0") VNĐ
+                    </h6>
+
+                    <hr />
+
+                    <strong>Gồm có:</strong>
+                    <ul>
+                        @foreach (var item in combo.ComboItems)
+                        {
+                            <li>@item.Product.Name</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    }
+</div>

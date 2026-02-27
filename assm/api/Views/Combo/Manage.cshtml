@@ -1,0 +1,44 @@
+﻿@model List<Lab4.Models.Combo>
+
+<h2>Quản lý Combo</h2>
+
+<a asp-action="Create" class="btn btn-success mb-3">Tạo Combo mới</a>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Tên</th>
+            <th>Giá</th>
+            <th>Sản phẩm</th>
+            <th>Trạng thái</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var combo in Model)
+        {
+            <tr>
+                <td>@combo.Name</td>
+                <td>@combo.PriceVnd VNĐ</td>
+                <td>
+                    <ul>
+                        @foreach (var item in combo.ComboItems)
+                        {
+                            <li>@item.Product.Name</li>
+                        }
+                    </ul>
+                </td>
+                <td>
+                    @(combo.IsActive ? "Đang bán" : "Ngưng bán")
+                </td>
+                <td>
+                    <a asp-action="ToggleActive"
+                       asp-route-id="@combo.Id"
+                       class="btn btn-warning btn-sm">
+                        Đổi trạng thái
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

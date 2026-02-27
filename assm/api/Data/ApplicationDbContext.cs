@@ -26,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<SupplierProduct> SupplierProducts => Set<SupplierProduct>();
     public DbSet<PriceHistory> PriceHistories { get; set; }
     public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<Combo> Combos => Set<Combo>();
+    public DbSet<ComboItem> ComboItems => Set<ComboItem>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -168,5 +170,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(sp => sp.Product)
             .WithMany(p => p.SupplierProducts)
             .HasForeignKey(sp => sp.ProductId);
+        // Combo - many to many
+        builder.Entity<ComboItem>()
+            .HasKey(ci => new { ci.ComboId, ci.ProductId });
+
+        builder.Entity<ComboItem>()
+            .HasOne(ci => ci.Combo)
+            .WithMany(c => c.ComboItems)
+            .HasForeignKey(ci => ci.ComboId);
+
+        builder.Entity<ComboItem>()
+            .HasOne(ci => ci.Product)
+            .WithMany(p => p.ComboItems)
+            .HasForeignKey(ci => ci.ProductId);
+
+        builder.Entity<Combo>()
+            .Property(c => c.PriceVnd)
+            .HasPrecision(18, 2);
     }
 }

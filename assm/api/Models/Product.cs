@@ -43,7 +43,7 @@ namespace Lab4.Models
         public Inventory? Inventory { get; set; }
         public ICollection<SupplierProduct> SupplierProducts { get; set; }
     = new List<SupplierProduct>();
-
+        public ICollection<ComboItem> ComboItems { get; set; } = new List<ComboItem>();
     }
     public class ProductDto
     {

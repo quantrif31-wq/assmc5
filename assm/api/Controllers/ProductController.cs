@@ -33,6 +33,13 @@ namespace Lab4.Controllers
                 .Where(p => p.IsActive)
                 .OrderBy(p => p.SortOrder)
                 .ToListAsync();
+            var combos = await _context.Combos
+        .Include(c => c.ComboItems)
+        .ThenInclude(ci => ci.Product)
+        .Where(c => c.IsActive)
+        .ToListAsync();
+
+            ViewBag.Combos = combos;
 
             return View(products);
         }

@@ -704,6 +704,48 @@ namespace Lab4.Controllers
 
             return View("OrderHistory", guestOrders);
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddComboAjax(int comboId)
+        {
+            // Lấy combo + các sản phẩm bên trong
+            var combo = await _context.Combos
+                .Include(c => c.ComboItems)
+                .ThenInclude(ci => ci.Product)
+                .FirstOrDefaultAsync(c => c.Id == comboId && c.IsActive);
 
+            if (combo == null)
+                return Json(new { ok = false, message = "Combo không tồn tại" });
+
+            var cart = await GetOrCreateCartAsync();
+
+            foreach (var item in combo.ComboItems)
+            {
+                var existing = cart.Items
+                    .FirstOrDefault(i => i.ProductId == item.ProductId);
+
+                if (existing != null)
+                {
+                    existing.Quantity++;
+                }
+                else
+                {
+                    cart.Items.Add(new CartItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = 1,
+                        UnitPriceText = item.Product.PriceVnd.ToString("N0")
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                ok = true,
+                totalQty = cart.Items.Sum(i => i.Quantity)
+            });
+        }
     }
 }

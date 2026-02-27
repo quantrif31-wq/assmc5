@@ -290,6 +290,10 @@
                             {
                                 <li><a class="dropdown-item" href="/Reports/Index">📊 Báo cáo doanh thu</a></li>
                             }
+                            @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Report.View") || User.IsInRole("StoreManager") || User.IsInRole("Accountant"))
+                            {
+                                <li><a class="dropdown-item" href="/Combo/Index">📊 </a>Quản Lý Combo</li>
+                            }
 
                             @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager"))
                             {

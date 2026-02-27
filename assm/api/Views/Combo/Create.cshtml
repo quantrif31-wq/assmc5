@@ -1,0 +1,53 @@
+﻿@model Lab4.Models.Combo
+@{
+    var products = ViewBag.Products as List<Lab4.Models.Product>;
+}
+
+<h2 class="mb-3">Tạo Combo</h2>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+
+    <div class="mb-3">
+        <label class="form-label">Tên Combo</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Mô tả</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Giá Combo</label>
+        <input asp-for="PriceVnd" class="form-control" />
+        <span asp-validation-for="PriceVnd" class="text-danger"></span>
+    </div>
+
+    <!-- 📷 Upload ảnh -->
+    <div class="mb-3">
+        <label class="form-label">Ảnh Combo</label>
+        <input type="file" name="imageFile" class="form-control" accept="image/*" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Chọn sản phẩm</label>
+
+        @foreach (var p in products)
+        {
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="selectedProducts"
+                       value="@p.Id" />
+                <label class="form-check-label">
+                    @p.Name - @p.PriceVnd.ToString("N0") VNĐ
+                </label>
+            </div>
+        }
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Tạo Combo
+    </button>
+</form>

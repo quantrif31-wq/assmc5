@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Menu";
+    var combos = ViewBag.Combos as List<Lab4.Models.Combo>;
 }
 
 <!doctype html>
@@ -327,7 +328,7 @@
             <div class="offers-title" data-text="BEST SELLER">BEST SELLER</div>
 
             <div class="offers-wrap">
-                <div class="row g-4 mt-1">
+                
                     <div class="row g-4 mt-1">
                         @foreach (var p in Model)
                         {
@@ -375,7 +376,57 @@
                                 </div>
                             </div>
                         }
+                        @if (combos != null && combos.Any())
+                        {
+                            <div class="offers-title mt-5" data-text="COMBO DEALS">
+                                COMBO DEALS
+                            </div>
 
+                            @foreach (var combo in combos)
+                            {
+                                <div class="col-12 col-lg-4">
+                                    <div class="food-card">
+                                        <div class="inner">
+
+                                            <div class="food-thumb">
+                                                <img src="@combo.ImageUrl" alt="@combo.Name" />
+                                            </div>
+
+                                            <div>
+                                                <h3 class="food-name">@combo.Name</h3>
+                                                <p class="food-desc">@combo.Description</p>
+
+                                                <div class="food-meta">
+                                                    <div>
+                                                        <div class="price">
+                                                            @combo.PriceVnd.ToString("N0") VNĐ
+                                                        </div>
+
+                                                        <small class="text-success fw-bold">
+                                                            Combo tiết kiệm 🔥
+                                                        </small>
+                                                    </div>
+
+                                                    <button type="button"
+                                                            class="btn-cart js-add-combo"
+                                                            data-id="@combo.Id">
+                                                        Add Combo
+                                                    </button>
+                                                </div>
+
+                                                <ul class="mt-2 small text-muted">
+                                                    @foreach (var item in combo.ComboItems)
+                                                    {
+                                                        <li>@item.Product.Name</li>
+                                                    }
+                                                </ul>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
 
 
@@ -399,61 +450,94 @@
 </body>
 <script>
     (function () {
+
         const tokenInput = document.querySelector('#antiForgeryForm input[name="__RequestVerificationToken"]');
-
-        async function addToCart(productId) {
-            const res = await fetch('/Cart/AddAjax', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'RequestVerificationToken': tokenInput ? tokenInput.value : ''
-                },
-                body: new URLSearchParams({ productId: productId, quantity: 1 })
-            });
-
-            if (!res.ok) {
-                let txt = '';
-                try { txt = await res.text(); } catch {}
-                throw new Error('Add failed: ' + res.status + ' ' + txt);
-            }
-            return await res.json();
-        }
 
         function setBadge(totalQty) {
             const badge = document.getElementById('cartBadge');
             if (badge) badge.textContent = totalQty ?? 0;
         }
 
-        document.addEventListener('click', async (e) => {
-            const btn = e.target.closest('.js-add');
-            if (!btn || btn.disabled) return;
+        async function postData(url, bodyObj) {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'RequestVerificationToken': tokenInput ? tokenInput.value : ''
+                },
+                body: new URLSearchParams(bodyObj)
+            });
 
-            btn.disabled = true;
-            const oldText = btn.textContent;
-            btn.textContent = 'Adding...';
-
-            try {
-                const id = btn.getAttribute('data-id');
-                const data = await addToCart(id);
-
-                if (data && data.ok) {
-                    setBadge(data.totalQty);
-                    btn.textContent = 'Added ✓';
-                    setTimeout(() => btn.textContent = oldText, 900);
-                } else {
-                    btn.textContent = oldText;
-                    alert(data?.message || 'Add to cart failed');
-                }
-            } catch (err) {
-                btn.textContent = oldText;
-                alert(err?.message || 'Add to cart failed');
-            } finally {
-                btn.disabled = false;
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(txt);
             }
+
+            return await res.json();
+        }
+
+        document.addEventListener('click', async (e) => {
+
+            // ===== ADD PRODUCT =====
+            const productBtn = e.target.closest('.js-add');
+            if (productBtn && !productBtn.disabled) {
+
+                productBtn.disabled = true;
+                const oldText = productBtn.textContent;
+                productBtn.textContent = 'Adding...';
+
+                try {
+                    const id = productBtn.dataset.id;
+                    const data = await postData('/Cart/AddAjax', { productId: id, quantity: 1 });
+
+                    if (data.ok) {
+                        setBadge(data.totalQty);
+                        productBtn.textContent = 'Added ✓';
+                        setTimeout(() => productBtn.textContent = oldText, 900);
+                    } else {
+                        alert(data.message);
+                        productBtn.textContent = oldText;
+                    }
+                } catch (err) {
+                    alert('Add failed');
+                    productBtn.textContent = oldText;
+                }
+
+                productBtn.disabled = false;
+            }
+
+            // ===== ADD COMBO =====
+            const comboBtn = e.target.closest('.js-add-combo');
+            if (comboBtn) {
+
+                comboBtn.disabled = true;
+                const oldText = comboBtn.textContent;
+                comboBtn.textContent = 'Adding...';
+
+                try {
+                    const id = comboBtn.dataset.id;
+                    const data = await postData('/Cart/AddComboAjax', { comboId: id });
+
+                    if (data.ok) {
+                        setBadge(data.totalQty);
+                        comboBtn.textContent = 'Added ✓';
+                        setTimeout(() => comboBtn.textContent = oldText, 900);
+                    } else {
+                        alert(data.message);
+                        comboBtn.textContent = oldText;
+                    }
+                } catch {
+                    alert('Add combo failed');
+                    comboBtn.textContent = oldText;
+                }
+
+                comboBtn.disabled = false;
+            }
+
         });
+
     })();
 </script>
-
 
 
 
