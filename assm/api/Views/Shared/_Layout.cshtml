@@ -292,7 +292,19 @@
                             }
                             @if (User.HasClaim("Permission", "Admin.Access") || User.HasClaim("Permission", "Report.View") || User.IsInRole("StoreManager") || User.IsInRole("Accountant"))
                             {
-                                <li><a class="dropdown-item" href="/Combo/Index">📊 </a>Quản Lý Combo</li>
+                                <li><a class="dropdown-item" href="/Combo/Manage">📊 Quản Lý Combo</a></li>
+                            }
+                            @* ===== VOUCHER MANAGEMENT ===== *@
+                            @if (User.HasClaim("Permission", "Admin.Access")
+                                                    || User.HasClaim("Permission", "Report.View")
+                                                    || User.IsInRole("StoreManager")
+                                                    || User.IsInRole("Accountant"))
+                            {
+                                <li>
+                                    <a class="dropdown-item" href="/QL_MGG/Index">
+                                        🎟 Quản lý mã giảm giá
+                                    </a>
+                                </li>
                             }
 
                             @if (User.HasClaim("Permission", "Admin.Access") || User.IsInRole("StoreManager"))

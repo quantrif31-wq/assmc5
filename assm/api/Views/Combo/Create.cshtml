@@ -3,51 +3,242 @@
     var products = ViewBag.Products as List<Lab4.Models.Product>;
 }
 
-<h2 class="mb-3">Tạo Combo</h2>
+<div class="combo-page">
 
-<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <h2 class="page-title">✨ Tạo Combo Mới</h2>
 
-    <div class="mb-3">
-        <label class="form-label">Tên Combo</label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
+    <div class="combo-glass-card">
 
-    <div class="mb-3">
-        <label class="form-label">Mô tả</label>
-        <textarea asp-for="Description" class="form-control"></textarea>
-    </div>
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
 
-    <div class="mb-3">
-        <label class="form-label">Giá Combo</label>
-        <input asp-for="PriceVnd" class="form-control" />
-        <span asp-validation-for="PriceVnd" class="text-danger"></span>
-    </div>
+            <div class="row">
 
-    <!-- 📷 Upload ảnh -->
-    <div class="mb-3">
-        <label class="form-label">Ảnh Combo</label>
-        <input type="file" name="imageFile" class="form-control" accept="image/*" />
-    </div>
+                <!-- LEFT COLUMN -->
+                <div class="col-md-6">
 
-    <div class="mb-3">
-        <label class="form-label">Chọn sản phẩm</label>
+                    <div class="modern-group">
+                        <label>Tên Combo</label>
+                        <input asp-for="Name" class="modern-input" placeholder="Nhập tên combo..." />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
 
-        @foreach (var p in products)
-        {
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="checkbox"
-                       name="selectedProducts"
-                       value="@p.Id" />
-                <label class="form-check-label">
-                    @p.Name - @p.PriceVnd.ToString("N0") VNĐ
-                </label>
+                    <div class="modern-group">
+                        <label>Mô tả</label>
+                        <textarea asp-for="Description" rows="4"
+                                  class="modern-input"
+                                  placeholder="Mô tả combo..."></textarea>
+                    </div>
+
+                    <div class="modern-group">
+                        <label>Giá Combo (VNĐ)</label>
+                        <input asp-for="PriceVnd" class="modern-input" />
+                        <span asp-validation-for="PriceVnd" class="text-danger"></span>
+                    </div>
+
+                    <!-- Upload -->
+                    <div class="modern-group">
+                        <label>Ảnh Combo</label>
+                        <input type="file"
+                               name="imageFile"
+                               class="modern-input"
+                               accept="image/*"
+                               onchange="previewImage(event)" />
+                    </div>
+
+                    <!-- Preview -->
+                    <div class="image-preview-wrapper">
+                        <img id="preview"
+                             style="display:none;"
+                             class="image-preview" />
+                    </div>
+
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-md-6">
+
+                    <label class="mb-2">Chọn sản phẩm</label>
+
+                    <div class="product-box">
+
+                        @foreach (var p in products)
+                        {
+                            <label class="product-item">
+                                <input type="checkbox"
+                                       name="selectedProducts"
+                                       value="@p.Id" />
+
+                                <div class="product-content">
+                                    <span class="product-name">@p.Name</span>
+                                    <span class="product-price">
+                                        @p.PriceVnd.ToString("N0") VNĐ
+                                    </span>
+                                </div>
+                            </label>
+                        }
+
+                    </div>
+
+                </div>
+
             </div>
-        }
-    </div>
 
-    <button type="submit" class="btn btn-primary">
-        Tạo Combo
-    </button>
-</form>
+            <div class="btn-modern-group">
+                <button type="submit" class="btn-save-modern">
+                    🚀 Tạo Combo
+                </button>
+
+                <a asp-action="Manage" class="btn-back-modern">
+                    ← Quay lại
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                const output = document.getElementById('preview');
+                output.src = reader.result;
+                output.style.display = "block";
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+}
+
+<style>
+
+    .combo-page {
+        padding: 30px;
+    }
+
+    .page-title {
+        font-weight: 700;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    .combo-glass-card {
+        background: rgba(255,255,255,0.6);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 15px 40px rgba(0,0,0,.1);
+    }
+
+    /* Form group */
+    .modern-group {
+        margin-bottom: 20px;
+    }
+
+        .modern-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+    .modern-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        transition: all .3s;
+    }
+
+        .modern-input:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108,99,255,.2);
+            outline: none;
+        }
+
+    /* Image preview */
+    .image-preview-wrapper {
+        margin-top: 10px;
+    }
+
+    .image-preview {
+        width: 150px;
+        border-radius: 12px;
+        box-shadow: 0 10px 20px rgba(0,0,0,.2);
+    }
+
+    /* Product box */
+    .product-box {
+        max-height: 350px;
+        overflow-y: auto;
+        padding: 15px;
+        background: rgba(255,255,255,.8);
+        border-radius: 15px;
+        border: 1px solid #eee;
+    }
+
+    .product-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all .2s;
+    }
+
+        .product-item:hover {
+            background: rgba(108,99,255,.08);
+        }
+
+    .product-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-name {
+        font-weight: 600;
+    }
+
+    .product-price {
+        font-size: 13px;
+        color: #777;
+    }
+
+    /* Buttons */
+    .btn-modern-group {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .btn-save-modern {
+        padding: 10px 20px;
+        border-radius: 25px;
+        border: none;
+        background: linear-gradient(45deg,#6c63ff,#8e44ad);
+        color: white;
+        font-weight: 600;
+        transition: all .3s;
+    }
+
+        .btn-save-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108,99,255,.3);
+        }
+
+    .btn-back-modern {
+        padding: 10px 20px;
+        border-radius: 25px;
+        background: #eee;
+        text-decoration: none;
+        color: #333;
+        transition: .3s;
+    }
+
+        .btn-back-modern:hover {
+            background: #ddd;
+        }
+
+</style>

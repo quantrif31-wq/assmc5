@@ -1,0 +1,217 @@
+﻿@model Lab4.Models.Combo
+@{
+    var products = ViewBag.Products as List<Lab4.Models.Product>;
+}
+
+<style>
+    .edit-wrap {
+        width: min(1000px, calc(100% - 40px));
+        margin: 50px auto;
+    }
+
+    .edit-title {
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: .12em;
+        font-size: 36px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.8px rgba(0,0,0,.4);
+        margin-bottom: 40px;
+    }
+
+    .glass-card {
+        padding: 40px;
+        background: rgba(255,255,255,.45);
+        backdrop-filter: blur(16px);
+        border-radius: 24px;
+        border: 1px solid rgba(255,255,255,.5);
+        box-shadow: 0 25px 60px rgba(0,0,0,.08);
+    }
+
+    .preview-img {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 18px;
+        box-shadow: 0 15px 30px rgba(0,0,0,.2);
+        margin-bottom: 15px;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+        gap: 14px;
+        margin-top: 15px;
+    }
+
+    .product-card {
+        padding: 14px;
+        border-radius: 14px;
+        background: rgba(255,255,255,.6);
+        border: 1px solid rgba(0,0,0,.05);
+        cursor: pointer;
+        transition: all .2s ease;
+    }
+
+        .product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,.08);
+        }
+
+        .product-card input {
+            margin-right: 6px;
+        }
+
+    .btn-group-modern {
+        display: flex;
+        gap: 12px;
+        margin-top: 35px;
+    }
+
+    .btn-save {
+        flex: 2;
+        border: 1px solid rgba(0,0,0,.45);
+        background: rgba(0,0,0,.8);
+        color: #fff;
+        padding: 12px 28px;
+        border-radius: 6px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        font-size: 13px;
+        text-transform: uppercase;
+        transition: .2s;
+    }
+
+        .btn-save:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+    .btn-back {
+        flex: 1;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,.1);
+        background: rgba(255,255,255,.5);
+        color: rgba(0,0,0,.6);
+        padding: 12px;
+        border-radius: 6px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+        .btn-back:hover {
+            background: rgba(0,0,0,.05);
+            color: #000;
+        }
+
+    .selected-count {
+        font-size: 13px;
+        color: rgba(0,0,0,.6);
+        margin-top: 8px;
+    }
+
+    @@media(max - width:768px) {
+        .glass-card {
+            padding: 25px;
+        }
+    }
+</style>
+
+<div class="edit-wrap">
+    <h2 class="edit-title">Edit Combo</h2>
+
+    <div class="glass-card">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+
+            <div class="row">
+                <div class="col-md-6">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tên Combo</label>
+                        <input asp-for="Name" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mô tả</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Giá Combo (VNĐ)</label>
+                        <input asp-for="PriceVnd" class="form-control" />
+                    </div>
+
+                </div>
+
+                <div class="col-md-6 text-center">
+
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <img src="@Model.ImageUrl" class="preview-img" />
+                    }
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold">Đổi ảnh (tuỳ chọn)</label>
+                        <input type="file" name="imageFile" class="form-control" />
+                    </div>
+
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <label class="form-label fw-bold">Chọn sản phẩm trong combo</label>
+
+            <div class="product-grid">
+                @foreach (var p in products)
+                {
+                    var isChecked = Model.ComboItems.Any(ci => ci.ProductId == p.Id);
+
+                    <label class="product-card">
+                        <input type="checkbox"
+                               name="selectedProducts"
+                               value="@p.Id"
+                               @(isChecked ? "checked" : "") />
+                        <strong>@p.Name</strong>
+                        <div class="text-muted small">
+                            @p.PriceVnd.ToString("N0") VNĐ
+                        </div>
+                    </label>
+                }
+            </div>
+
+            <div class="selected-count">
+                Tổng sản phẩm đã chọn:
+                <span id="selectedCount">
+                    @Model.ComboItems.Count
+                </span>
+            </div>
+
+            <div class="btn-group-modern">
+                <button type="submit" class="btn-save">
+                    💾 Cập nhật Combo
+                </button>
+                <a asp-action="Manage" class="btn-back">
+                    Quay lại
+                </a>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<script>
+    const checkboxes = document.querySelectorAll('input[name="selectedProducts"]');
+    const countSpan = document.getElementById('selectedCount');
+
+    function updateCount() {
+        const checked = document.querySelectorAll('input[name="selectedProducts"]:checked').length;
+        countSpan.textContent = checked;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+</script>

@@ -1,0 +1,46 @@
+﻿@model Lab4.Models.QL_MGG.DiscountVoucher
+
+@{
+    ViewData["Title"] = "Tạo mã giảm giá";
+}
+
+<h2 class="mb-3">🎟 Tạo mã giảm giá</h2>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">Mã giảm giá</label>
+        <input asp-for="Code" class="form-control" />
+        <span asp-validation-for="Code" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Giảm tiền cố định (VND)</label>
+        <input asp-for="DiscountAmount" class="form-control" />
+        <span asp-validation-for="DiscountAmount" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Giảm phần trăm (%)</label>
+        <input asp-for="DiscountPercent" class="form-control" />
+        <span asp-validation-for="DiscountPercent" class="text-danger"></span>
+    </div>
+
+  
+
+    <div class="mb-3">
+        <label class="form-label">Ngày hết hạn</label>
+        <input asp-for="ExpiryDate" type="date" class="form-control" />
+        <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">UserId (nếu là mã định danh)</label>
+        <input asp-for="UserId" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

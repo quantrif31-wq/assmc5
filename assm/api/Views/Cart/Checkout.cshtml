@@ -339,12 +339,35 @@
                             <div class="sum-name">Thuế</div>
                             <div class="sum-pill">@Model.TaxText</div>
                         </div>
-
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <div class="sum-row">
+                                <div class="sum-name">Giảm giá</div>
+                                <div class="sum-pill" style="color:#2e7d32;">
+                                    -@Model.DiscountText
+                                </div>
+                            </div>
+                        }
                         <div class="sum-row">
                             <div class="sum-name">Phí vận chuyển</div>
                             <div class="sum-pill" id="shippingFeeText">@Model.ShippingFeeText</div>
                         </div>
+                        <div class="sum-row">
+                            <div class="sum-name">Mã giảm giá</div>
+                            <div style="display:flex; gap:6px;">
+                                <input class="c-input"
+                                       asp-for="VoucherCode"
+                                       placeholder="Nhập mã..."
+                                       style="height:30px; font-size:12px;" />
+                            </div>
+                        </div>
 
+                        @if (TempData["Error"] != null)
+                        {
+                            <div style="color:#b00020; font-size:12px; margin-top:4px;">
+                                @TempData["Error"]
+                            </div>
+                        }
                         <div class="sum-row">
                             <div class="sum-name sum-strong">Tổng cộng</div>
                             <div class="sum-pill sum-strong" id="totalText">@Model.TotalText</div>
@@ -377,8 +400,8 @@
             const totalEl = document.getElementById('totalText');
 
             // Giá trị subtotal + tax từ server (đơn vị đồng)
-            const subtotal = @((long)Model.Subtotal);
-            const tax = @((long)Model.Tax);
+                   const baseAmount = @((long)(Model.Subtotal - Model.DiscountAmount));
+        const tax = @((long)Model.Tax);
 
             // 1. Load danh sách quận khi trang mở
             fetch('/api/shipping/districts')
@@ -398,7 +421,7 @@
 
                 if (!districtId || districtId === '0') {
                     shippingFeeEl.textContent = '0 ₫';
-                    totalEl.textContent = formatVnd(subtotal + tax);
+                   totalEl.textContent = formatVnd(baseAmount + tax);
                     cityHidden.value = '';
                     return;
                 }
@@ -410,7 +433,7 @@
                         shippingFeeEl.textContent = data.feeText;
 
                         // Cập nhật tổng cộng
-                        const newTotal = subtotal + tax + data.fee;
+                       const newTotal = baseAmount + tax + data.fee;
                         totalEl.textContent = formatVnd(newTotal);
 
                         // Gán tên quận vào City hidden
@@ -418,7 +441,7 @@
                     })
                     .catch(() => {
                         shippingFeeEl.textContent = '0 ₫';
-                        totalEl.textContent = formatVnd(subtotal + tax);
+                       totalEl.textContent = formatVnd(baseAmount + tax);
                     });
             });
 

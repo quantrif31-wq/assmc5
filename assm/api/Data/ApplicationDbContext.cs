@@ -1,6 +1,7 @@
 ﻿
 using lab4.Models;
 using Lab4.Models;
+using Lab4.Models.QL_MGG;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -28,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AuditLog> AuditLogs { get; set; }
     public DbSet<Combo> Combos => Set<Combo>();
     public DbSet<ComboItem> ComboItems => Set<ComboItem>();
+    public DbSet<DiscountVoucher> DiscountVouchers => Set<DiscountVoucher>();
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -192,5 +194,23 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     .WithMany()
     .HasForeignKey(ci => ci.ComboId)
     .OnDelete(DeleteBehavior.Restrict);
+        builder.Entity<DiscountVoucher>()
+    .HasIndex(v => v.Code)
+    .IsUnique();
+
+        builder.Entity<DiscountVoucher>()
+            .HasOne(v => v.User)
+            .WithMany()
+            .HasForeignKey(v => v.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<DiscountVoucher>()
+            .Property(v => v.DiscountAmount)
+            .HasPrecision(18, 2);
+        builder.Entity<Order>()
+    .HasOne(o => o.Voucher)
+    .WithMany()
+    .HasForeignKey(o => o.VoucherId)
+    .OnDelete(DeleteBehavior.SetNull);
     }
 }

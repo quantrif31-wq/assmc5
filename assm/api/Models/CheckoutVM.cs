@@ -50,6 +50,14 @@ namespace Lab4.Models
         public string TaxText { get; set; } = "0";
         public string ShippingFeeText { get; set; } = "0";
         public string TotalText { get; set; } = "0";
+        public string? VoucherCode { get; set; }
+        // ===== VOUCHER =====
+        public decimal DiscountAmount { get; set; } = 0;
+
+        public string DiscountText =>
+            DiscountAmount > 0
+                ? string.Format("{0:N0} ₫", DiscountAmount)
+                : "0 ₫";
     }
 
     public class CheckoutItemVM

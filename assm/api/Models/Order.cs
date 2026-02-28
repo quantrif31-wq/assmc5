@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Lab4.Models.QL_MGG;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Lab4.Models
@@ -69,6 +70,10 @@ namespace Lab4.Models
         public string? VnpResponseCode { get; set; }
 
         public DateTime? VnpPayDate { get; set; }
+        public int? VoucherId { get; set; }
+        public decimal DiscountAmount { get; set; } = 0;
+
+        public DiscountVoucher? Voucher { get; set; }
 
         // ===== QUAN HỆ =====
         public List<OrderItem> Items { get; set; } = new();

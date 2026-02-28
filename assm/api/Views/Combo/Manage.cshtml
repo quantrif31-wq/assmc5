@@ -1,44 +1,168 @@
-﻿@model List<Lab4.Models.Combo>
+﻿@model IEnumerable<Lab4.Models.Combo>
 
-<h2>Quản lý Combo</h2>
+@{
+    ViewData["Title"] = "Quản lý Combo";
+}
 
-<a asp-action="Create" class="btn btn-success mb-3">Tạo Combo mới</a>
+<style>
+    .manage-wrap {
+        width: min(1200px, calc(100% - 60px));
+        margin: 40px auto;
+    }
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Tên</th>
-            <th>Giá</th>
-            <th>Sản phẩm</th>
-            <th>Trạng thái</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+    .manage-title {
+        text-align: center;
+        font-weight: 900;
+        letter-spacing: .1em;
+        font-size: 34px;
+        text-transform: uppercase;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(0,0,0,.4);
+        margin-bottom: 40px;
+    }
+
+    .combo-card {
+        background: rgba(255,255,255,.6);
+        backdrop-filter: blur(14px);
+        border-radius: 18px;
+        padding: 20px;
+        border: 1px solid rgba(255,255,255,.5);
+        box-shadow: 0 20px 40px rgba(0,0,0,.08);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .combo-thumb {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 14px;
+        margin-bottom: 15px;
+        box-shadow: 0 10px 20px rgba(0,0,0,.15);
+    }
+
+    .combo-name {
+        font-weight: 800;
+        font-size: 20px;
+        margin-bottom: 6px;
+    }
+
+    .combo-price {
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .combo-desc {
+        font-size: 13px;
+        color: rgba(0,0,0,.6);
+        margin-bottom: 10px;
+    }
+
+    .combo-products {
+        font-size: 13px;
+        color: rgba(0,0,0,.6);
+        margin-bottom: 15px;
+    }
+
+        .combo-products li {
+            margin-bottom: 3px;
+        }
+
+    .combo-actions {
+        margin-top: auto;
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-modern {
+        flex: 1;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 8px;
+        text-transform: uppercase;
+    }
+
+    .btn-edit {
+        background: #ffc107;
+        border: none;
+    }
+
+    .btn-toggle {
+        background: #212529;
+        color: #fff;
+        border: none;
+    }
+
+    .inactive {
+        opacity: .5;
+        filter: grayscale(.6);
+    }
+</style>
+
+<div class="manage-wrap">
+    <h2 class="manage-title">Combo Management</h2>
+
+    <div class="text-end mb-4">
+        <a asp-action="Create" class="btn btn-dark">
+            + Tạo Combo Mới
+        </a>
+    </div>
+
+    <div class="row g-4">
         @foreach (var combo in Model)
         {
-            <tr>
-                <td>@combo.Name</td>
-                <td>@combo.PriceVnd VNĐ</td>
-                <td>
-                    <ul>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="combo-card @(combo.IsActive ? "" : "inactive")">
+
+                    <!-- Ảnh -->
+                    <img src="@(string.IsNullOrEmpty(combo.ImageUrl) ? "/images/no-image.png" : combo.ImageUrl)"
+                         class="combo-thumb" />
+
+                    <!-- Tên -->
+                    <div class="combo-name">
+                        @combo.Name
+                    </div>
+
+                    <!-- Giá -->
+                    <div class="combo-price">
+                        @combo.PriceVnd.ToString("N0") VNĐ
+                    </div>
+
+                    <!-- Mô tả -->
+                    <div class="combo-desc">
+                        @combo.Description
+                    </div>
+
+                    <!-- Danh sách sản phẩm -->
+                    <ul class="combo-products">
                         @foreach (var item in combo.ComboItems)
                         {
-                            <li>@item.Product.Name</li>
+                            <li>• @item.Product.Name</li>
                         }
                     </ul>
-                </td>
-                <td>
-                    @(combo.IsActive ? "Đang bán" : "Ngưng bán")
-                </td>
-                <td>
-                    <a asp-action="ToggleActive"
-                       asp-route-id="@combo.Id"
-                       class="btn btn-warning btn-sm">
-                        Đổi trạng thái
-                    </a>
-                </td>
-            </tr>
+
+                    <!-- Nút thao tác -->
+                    <div class="combo-actions">
+
+                        <a asp-action="Edit"
+                           asp-route-id="@combo.Id"
+                           class="btn btn-modern btn-edit">
+                            Edit
+                        </a>
+
+                        <a asp-action="ToggleActive"
+                           asp-route-id="@combo.Id"
+                           class="btn btn-modern btn-toggle">
+                            @(combo.IsActive ? "Ẩn" : "Hiện")
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
         }
-    </tbody>
-</table>
+    </div>
+</div>

@@ -1,0 +1,50 @@
+﻿@model IEnumerable<Lab4.Models.QL_MGG.DiscountVoucher>
+
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+}
+
+<h2 class="mb-3">🎟 Quản lý mã giảm giá</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-3">
+    + Tạo mã mới
+</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Mã</th>
+            <th>Giảm (%)</th>
+            <th>Giảm tối đa</th>
+            <th>Ngày hết hạn</th>
+            <th>User</th>
+            <th>Đã dùng</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var v in Model)
+        {
+            <tr>
+                <td>@v.Code</td>
+                <td>@v.DiscountPercent %</td>
+                <td>
+                    @(v.DiscountAmount.HasValue
+                                    ? v.DiscountAmount.Value.ToString("N0") + " ₫"
+                                    : v.DiscountPercent + " %")
+                </td>
+                <td>@v.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                <td>@v.User?.FullName</td>
+                <td>
+                    @if (v.UsedCount >= v.UsageLimit)
+                    {
+                        <span class="badge bg-danger">Đã dùng hết</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Còn hiệu lực</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

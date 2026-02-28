@@ -2,6 +2,7 @@
 using Lab4.ApiControllers;
 using Lab4.Data;
 using Lab4.Models;
+using Lab4.Models.QL_MGG;
 using Lab4.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -150,15 +151,64 @@ namespace Lab4.Controllers
             // =========================
             decimal subtotal = 0;
             foreach (var i in cart.Items)
+            {
                 subtotal += ParseVndToLong(i.UnitPriceText) * i.Quantity;
+            }
 
             decimal tax = 0;
 
-            // ===== TÍNH PHÍ SHIP PHÍA SERVER (bảo mật) =====
+            // =========================
+            // VOUCHER VALIDATION
+            // =========================
+            DiscountVoucher? voucher = null;
+            decimal discountAmount = 0;
+
+            if (!string.IsNullOrWhiteSpace(vm.VoucherCode))
+            {
+                voucher = await _context.DiscountVouchers
+                    .FirstOrDefaultAsync(v => v.Code == vm.VoucherCode && v.IsActive);
+
+                if (voucher == null)
+                {
+                    TempData["Error"] = "Mã giảm giá không tồn tại";
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                if (voucher.ExpiryDate < DateTime.UtcNow)
+                {
+                    TempData["Error"] = "Mã giảm giá đã hết hạn";
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                if (voucher.UsedCount >= voucher.UsageLimit)
+                {
+                    TempData["Error"] = "Mã đã hết lượt sử dụng";
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                var currentUserId = IsLoggedIn ? GetUserId() : null;
+
+                if (voucher.UserId != null && voucher.UserId != currentUserId)
+                {
+                    TempData["Error"] = "Mã giảm giá không dành cho tài khoản của bạn";
+                    return RedirectToAction(nameof(Checkout));
+                }
+
+                if (voucher.DiscountAmount.HasValue)
+                    discountAmount = voucher.DiscountAmount.Value;
+                else if (voucher.DiscountPercent.HasValue)
+                    discountAmount = subtotal * (decimal)voucher.DiscountPercent.Value / 100;
+
+                discountAmount = Math.Min(discountAmount, subtotal);
+            }
+
+            // ===== SHIPPING =====
             decimal shippingFee = ShippingApiController.GetShippingFee(vm.DistrictId);
             string? districtName = ShippingApiController.GetDistrictName(vm.DistrictId);
 
-            decimal total = subtotal + tax + shippingFee;
+            decimal total = subtotal - discountAmount + tax + shippingFee;
+
+           
 
             using var tx = await _context.Database.BeginTransactionAsync();
 
@@ -172,6 +222,9 @@ namespace Lab4.Controllers
                 {
                     UserId = IsLoggedIn ? GetUserId() : null,
                     SessionId = IsLoggedIn ? null : HttpContext.Session.GetString(SessionKey),
+
+                    VoucherId = voucher?.Id,
+                    DiscountAmount = discountAmount,
 
                     FullName = vm.FullName,
                     Phone = vm.Phone,
@@ -188,7 +241,10 @@ namespace Lab4.Controllers
                     Total = total,
                     Status = initialStatus
                 };
-
+                if (voucher != null)
+                {
+                    voucher.UsedCount++;
+                }
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
 
