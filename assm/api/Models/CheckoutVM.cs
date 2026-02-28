@@ -29,6 +29,9 @@ namespace Lab4.Models
         [StringLength(120)]
         public string? Email { get; set; }
 
+        
+        
+
         [StringLength(300)]
         public string? Note { get; set; }
 
@@ -54,10 +57,9 @@ namespace Lab4.Models
         // ===== VOUCHER =====
         public decimal DiscountAmount { get; set; } = 0;
 
-        public string DiscountText =>
-            DiscountAmount > 0
-                ? string.Format("{0:N0} ₫", DiscountAmount)
-                : "0 ₫";
+        public string? DiscountText { get; set; }
+
+
     }
 
     public class CheckoutItemVM

@@ -30,58 +30,79 @@ namespace Lab4.Controllers
             _vnPayService = vnPayService;
         }
         [HttpGet]
-        public async Task<IActionResult> Checkout()
+        public async Task<IActionResult> Checkout(string? voucherCode = null)
         {
             var cart = await GetOrCreateCartAsync();
 
             await _context.Entry(cart)
                 .Collection(c => c.Items)
                 .Query()
-               .Include(i => i.Product)
-.Include(i => i.Combo)
+                .Include(i => i.Product)
+                .Include(i => i.Combo)
                 .LoadAsync();
 
-            if (cart.Items == null || !cart.Items.Any())
+            if (!cart.Items.Any())
             {
-                TempData["Error"] = "Giỏ hàng trống, vui lòng chọn món.";
+                TempData["Error"] = "Giỏ hàng trống.";
                 return RedirectToAction("Menu", "Product");
             }
 
-            decimal subtotal = 0m;
+            decimal subtotal = 0;
             foreach (var i in cart.Items)
+                subtotal += ParseVndToLong(i.UnitPriceText) * i.Quantity;
+
+            decimal tax = 0;
+            decimal discountAmount = 0;
+            DiscountVoucher? voucher = null;
+
+            // ===== APPLY VOUCHER =====
+            if (!string.IsNullOrWhiteSpace(voucherCode))
             {
-                var unit = (decimal)ParseVndToLong(i.UnitPriceText);
-                subtotal += unit * i.Quantity;
+                voucher = await _context.DiscountVouchers
+                    .FirstOrDefaultAsync(v => v.Code == voucherCode && v.IsActive);
+
+                if (voucher == null)
+                {
+                    TempData["Error"] = "Mã không tồn tại";
+                }
+                else if (voucher.ExpiryDate < DateTime.UtcNow)
+                {
+                    TempData["Error"] = "Mã đã hết hạn";
+                }
+                else
+                {
+                    if (voucher.DiscountAmount.HasValue)
+                        discountAmount = voucher.DiscountAmount.Value;
+                    else if (voucher.DiscountPercent.HasValue)
+                        discountAmount = subtotal * (decimal)voucher.DiscountPercent.Value / 100;
+
+                    discountAmount = Math.Min(discountAmount, subtotal);
+                }
             }
 
-            decimal taxRate = 0m;
-            decimal tax = Math.Round(subtotal * taxRate, 0, MidpointRounding.AwayFromZero);
-            decimal shippingFee = 0m; // mặc định, sẽ cập nhật real-time qua AJAX
-            decimal total = subtotal + tax + shippingFee;
+            decimal shippingFee = 0;
+            decimal total = subtotal - discountAmount + tax + shippingFee;
 
             var vm = new CheckoutVM
             {
-                Email = User?.Identity?.IsAuthenticated == true ? User.Identity?.Name : null,
-
-                Items = cart.Items.Select(i =>
+                Items = cart.Items.Select(i => new CheckoutItemVM
                 {
-                    var unit = (decimal)ParseVndToLong(i.UnitPriceText);
-                    return new CheckoutItemVM
-                    {
-                        Name = i.Product?.Name ?? i.Combo?.Name ?? "",
-                        Qty = i.Quantity,
-                        PriceText = FormatVnd(unit * i.Quantity)
-                    };
+                    Name = i.Product?.Name ?? i.Combo?.Name ?? "",
+                    Qty = i.Quantity,
+                    PriceText = FormatVnd(ParseVndToLong(i.UnitPriceText) * i.Quantity)
                 }).ToList(),
 
-                Currency = "VND",
+                VoucherCode = voucherCode,
                 Subtotal = subtotal,
                 Tax = tax,
                 ShippingFee = shippingFee,
+                DiscountAmount = discountAmount,
                 Total = total,
+
                 SubtotalText = FormatVnd(subtotal),
                 TaxText = FormatVnd(tax),
                 ShippingFeeText = FormatVnd(shippingFee),
+                DiscountText = FormatVnd(discountAmount),
                 TotalText = FormatVnd(total)
             };
 
@@ -330,10 +351,10 @@ namespace Lab4.Controllers
 
                 return RedirectToAction(nameof(Success), new { id = order.Id });
             }
-            catch
+            catch (Exception ex)
             {
                 await tx.RollbackAsync();
-                TempData["Error"] = "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.";
+                TempData["Error"] = ex.ToString(); // HIỂN THỊ LỖI THẬT
                 return RedirectToAction(nameof(Checkout));
             }
         }

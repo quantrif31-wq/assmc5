@@ -339,15 +339,21 @@
                             <div class="sum-name">Thuế</div>
                             <div class="sum-pill">@Model.TaxText</div>
                         </div>
-                        @if (Model.DiscountAmount > 0)
-                        {
-                            <div class="sum-row">
-                                <div class="sum-name">Giảm giá</div>
-                                <div class="sum-pill" style="color:#2e7d32;">
-                                    -@Model.DiscountText
-                                </div>
+                        <div class="sum-row">
+                            <div class="sum-name">Mã giảm giá</div>
+                            <div style="display:flex; gap:6px;">
+                                <input class="c-input"
+                                       asp-for="VoucherCode"
+                                       placeholder="Nhập mã..."
+                                       style="height:30px; font-size:12px;" />
+                                <button type="submit"
+                                        formaction="@Url.Action("Checkout", "Cart")"
+                                        formmethod="get"
+                                        class="btn btn-sm btn-dark">
+                                    Áp dụng
+                                </button>
                             </div>
-                        }
+                        </div>
                         <div class="sum-row">
                             <div class="sum-name">Phí vận chuyển</div>
                             <div class="sum-pill" id="shippingFeeText">@Model.ShippingFeeText</div>
